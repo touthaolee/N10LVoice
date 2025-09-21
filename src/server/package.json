@@ -1,0 +1,47 @@
+{
+  "name": "n10voice-eval-server",
+  "version": "1.0.0",
+  "description": "N10Voice Personal Care evaluation API server (Express + MySQL + Socket.IO)",
+  "main": "index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "watch": "nodemon --watch . --ext js,json index.js",
+    "update": "npm update && npm audit fix",
+    "fresh-install": "rm -rf node_modules package-lock.json && npm install",
+    "security-check": "npm audit",
+    "outdated": "npm outdated",
+    "clean": "rm -rf node_modules package-lock.json",
+    "reinstall": "npm run clean && npm install"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "mysql2": "^3.11.3",
+    "socket.io": "^4.7.5",
+    "jsonwebtoken": "^9.0.2",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "winston": "^3.14.2",
+    "winston-daily-rotate-file": "^5.0.0",
+    "morgan": "^1.10.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "keywords": [
+    "nursing",
+    "evaluation",
+    "realtime",
+    "socket.io",
+    "education",
+    "mysql"
+  ],
+  "author": "N10Voice Development Team",
+  "license": "MIT"
+}

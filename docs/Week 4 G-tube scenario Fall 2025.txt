@@ -1,0 +1,238 @@
+Nursing Shift 7am -7pm
+Scenario Time -->0700 - 1500
+
+S = SITUATION:  
+   Admission Report:
+       Shannon Shaw is a 74- year old female client admitted with significant weight loss, secondary to a right total hip replacement following a hip fracture 6 months ago.  Since surgery, the client has been unable to consume enough calories to maintain her weight and a G-tube has been placed.  Client is dysphagia and at a high risk for aspiration.  She is also suffering from “dry eye” and has lubricating eye drops ordered twice a day.
+
+   Dx:  Malnutrition, Dysphagia, Dementia
+
+B = Background:
+  PMH:  CVA, aspiration pneumonia and confusion
+  NKA	
+A = ASSESSMENT:
+ Visible clinical signs:
+    Frail, pale, lethargic, PEG tube infusing Jevity Plus @ 75 mL/hr.
+    HT: 5’3”    Wt: 97 #    BMI < 18
+    
+Physicians Orders: 
+    Continuous feeding via g-tube = Jevity Plus @ 75 mls/hr.
+    H2O bolus 100 mL q 8 hours via g-tube
+    Reglan 10 gm via g-tube every 8 hours
+    Artificial Tears one drop in each eye twice a day
+    I & O
+    Serum for electrolytes daily	
+	
+  Current labs:
+    K = 4.0
+    Na = 130	   
+    Mg = 2.8
+    Phosphorus = 3.0
+    Cl = 105
+    Albumin = 2.5
+    Residual = 20ml  
+R = Recommendations, review, requests:
+
+
+
+
+CRITICAL ELEMENTSCommentsStandard Protocol - Beginningo Verifies physician’s orders (must review orders on chart at bedside)
+o Gathers own equipment/supplies 
+o Performs hand hygiene – Gel in gel out	\\Standard Protocol - Duringo Identifies client   (Must check ID bracelet and ask the client state name and DOB)	
+o Introduces self (Talk to the actor) 		
+o Explains what plans to do (Talk to the actor)
+o *Identifies teaching needed and describes what the client can expect      
+o *Assess client to determine if the intervention is still appropriate 
+o Adjust the bed to appropriate height and lower nearest side rail 
+o Provides adequate lighting (Turn on overhead lights)
+o Provides privacy for client   (Pull actual curtain – if in the way may put back)AssessmentsHead, Face, Mouth /Mucous membranes:
+o Head: symmetry, masses, tenderness
+o Hair: Color, thick/fine, straight/curly, distribution
+o Face: symmetry
+o Teeth: Present/missing, condition, color, plaque, dentures/bridges, breath odor
+Mucous membranes/gums: Moist/dry/cracked, pink/paleSkin, Hair, Nails:
+o Skin tone/variations:  (pink, pale, ruddy, ruddy, light/dark tan/brown, olive tones, jaundice, cyanosis, hypo/hyperpigmented areas)
+o Temperature/character: Warm/cool, dry/clammy
+o Texture: Smooth firm with even surfaces
+o Thickness: Epidermis uniform w/ incr. thickness to soles/palms
+o Edema: Name location and grade from None - 4+
+o Turgor: Tenting x # of sec or none	
+o Vascularity: Bruising/tattoos
+o Lesions/Moles/Scars: Color, elevation, pattern or shape, size in cm, location/distribution, exudates, and type of lesion noted ie macular, papular, vesicular, pustular
+o Presence of pressure signs: redness, loss of superficial skin layers	
+Nails: Thin/thick, pink/yellow, smooth/uneven, 160 degree or less contour, cap refill immediate or # of secGeneral Appearance:
+o State of Nutrition: Thin, frail or obese
+o Comfort Level: Without distress
+o Facial features/Body Structure:   Posture: Sitting in W/C or standing; Symmetrical features
+
+Neurological system:
+o Level of orientation: Alert & oriented to person, place, time
+o Alert & oriented to number of variables = A&Ox1, x2, or x3
+o Memory Intact: short or long term
+o Follows directions with active motor movement
+o Pupillary reaction, ocular movement,
+o PERRLA (pupils equally round, reactive to light/accommodation) 
+o Glascow Coma Scale
+
+Psychological:
+o Facial Expression: Eye contact, smiling, crying
+o Mood/Affect: Cooperative, appropriate expression
+o Speech: Articulation is clear/understandable
+o Interaction: Developmentally appropriate
+o Personal Hygiene: Clean
+Head, Face, Mouth /Mucous membranes:
+o Head: symmetry, masses, tenderness
+o Hair: Color, thick/fine, straight/curly, distribution
+o Face: symmetry
+o Teeth: Present/missing, condition, color, plaque, dentures/bridges, breath odor
+Mucous membranes/gums: Moist/dry/cracked, pink/pale
+
+Skin, Hair, Nails:
+o Skin tone/variations:  (pink, pale, ruddy, light/dark tan/brown, olive tones, jaundice, cyanosis, hypo/hyperpigmented areas)
+o Temperature/character: Warm/cool, dry/clammy
+o Texture: Smooth firm with even surfaces
+o Thickness: Epidermis uniform w/ incr. thickness to soles/palms
+o Turgor: Tenting x # of sec or none	
+o Vascularity: Bruising/tattoos
+o Edema: Name location and grade from None - 4+
+o Lesions/Moles/Scars: Color, elevation, pattern or shape, size in cm, location/distribution, exudates, and type of lesion noted ie macular, papular, vesicular, pustular
+o Presence of pressure signs: redness, loss of superficial skin layers	
+Nails: Thin/thick, pink/yellow, smooth/uneven, 160 degree or less contour, cap refill immediate or # of sec
+General Appearance:
+o State of Nutrition: Physical Appearance (No signs of malnutrition) Thin, frail or obese
+o Comfort Level: No distress
+o Facial features/Body Structure:   Describe pt’s posture. Sitting in W/C or standing or lying in bed; Symmetrical features
+Neurological system:
+o Level of orientation: Alert & oriented to person, place, time
+o Alert & oriented to number of variables = A&Ox1, x2, or x3
+o Memory Intact: short or long term
+o Follows directions with active motor movement
+o Pupillary reaction, ocular movement,
+o PERRLA (pupils equally round, reactive to light/accommodation) 
+o Glasgow Coma Scale
+
+Psychological:
+o Facial Expression: Eye contact, smiling, crying
+o Mood/Affect: Cooperative, appropriate expression
+o Speech: Articulation is clear/understandable
+o Interaction: Developmentally appropriate to age
+o Personal Hygiene: Clean
+Abdominal Assessment (stethoscope on skin)o Must be in order – LOOK – LISTEN –FEEL
+o LOOK = Contour: Flat, scaphoid, rounded, protuberant, panniculus, (must inspect and state what they see)
+o LOOK= Shape: Symmetry, bulges, masses (must inspect and state what they see)
+o LISTEN = Auscultation: Bowel sounds x 4 quadrants; Hypo/normo/hyperactive and note region (must listen and discuss what they hear)
+o FEEL = Percussion: yes
+o FEEL = Palpation: tenderness, masses: organomegaly: note location (must do)
+o Last Bowel Movement (may ask at any time): Character and Size (must talk with actor/tress)Urinary/Genitalia (ask questions)o Color: Pink, inflammation, lesions, scars
+o Irritation:  Any itching, discharge, pain or tenderness
+o Urination:  Continent, incontinent, foley catheter, voiding scheduleMusculoskeletalo Inspection: redness, warmth, deformity
+o Range of Motion (ROM): Full range of motion, note # of degrees, describe deficits & compare to opposite side (hemiparesis, hemiplegia, or contractures)
+o Muscle Strength: 1 – 5+, symmetry, areas tested
+o Gait: base width= shoulder width, stagger, stumble, shuffle vs. accurate foot placement and balanced movement, symmetric arm swing; if only short distance, note distance or number of steps
+
+
+
+
+6 Rights and 3 Checkso Checks MAR with the MD orders                                      
+o Checks PMH (past/present medical history)for appropriateness of ordered meds (states why taking med)
+o Checks allergies (may ask client, find on MAR, find on Chart etc.)
+o Check expiration dates on meds (looks at med and states)		      
+   First check – at testing table							          
+    6 Rights (during 1st check – must state/do each in any order)
+o Client  _____    _____   _____   
+o Drug    _____    _____   _____   
+o Dose    _____    _____   _____    
+o Route   _____    _____  _____   
+o Time    _____    _____   _____  
+o Documentation (must state will document after meds given/taken)   
+                                                                           ______    _____    _____      
+   Second check– at bedside table							
+   6 Rights (during 2nd check– must state/do each in any order)
+o Client  _____    _____   _____  
+o Drug    _____    _____   _____  
+o Dose    _____    _____   _____  
+o Route   _____    _____  _____ 
+o Time    _____    _____   _____  
+o Documentation (must state will document after meds given/taken 
+                                                                                                      _____  _____  _____   
+  Third check before administration to client – at nightstand		   	       
+   6 Rights (during 3rd check – must state/do each in any order)
+o Client  Must look at arm band during this check ____   ____  ____  
+As long as student stays in the room with client, they may check to armband only once
+o Drug    _____    _____   _____  
+o Dose    _____    _____   _____  
+o Route   _____    _____  _____  
+o Time    _____    _____   _____  
+o Documentation (must state will document after meds given/taken)   
+                                                                                 _____  _____   _____  Medication Knowledge and AdministrationGT Reglan  must PERFORM ALL
+o Stop/Hold Feeding (30 minutes) prior to med administration) (MUST DO)
+o Wears Gloves
+o Residual checked (for testing check residual given on scenario) (MUST DO)
+o States if < 60ml replace;> 60ml – turn on right side – recheck in 30 minutes
+o States/performs with air = replaces residual given on scenario for testing scenario (Must do)
+o Metoclopramide (Reglan) – increases muscle tone of the lower esophagus sphincter – helps move stomach contents
+o Works best when taken 30 minutes before a meal – on empty stomach
+o States medication can be crushed
+o Knowledgeable about medication:
+1.  Onset = 30 – 60 minutes
+2. Peak = unknown
+3. Duration = 1-2 hours
+4. Side effects may include: drowsiness, fatigue, restlessness, weakness, trouble sleeping, headache, confusion, dizziness
+
+GT Reglan Must PERFORM ALL
+o Wears Gloves
+o Prepares water bolus 100mls to be divided into flush #1 – dissolve med – flush #2
+o Must have actual H2O and really pour
+o Prepares Reglan (mg per MD order) via GT (crush & dilute in 15 -30mls water)
+o Flush G-tube with 30-60mls water – Gravity only – Yes really pour it!
+o Give diluted Reglan via G-tube – Gravity only – Yes really pour it!
+o Flush with 30 – 60 mls water after meds – Gravity only – Yes really pour it!
+o States would restart continuous feeding 30 min. after administration
+
+Artificial Tears eye drops
+Side effects: blurred vision, eye redness or discomfort, increased sensitivity to light, matting or stickiness of eyelashes, swelling of eyelids, watering of eyes
+o Wears gloves
+o Hold cotton ball, gauze 2x2, or tissue in nondominant hand on patient’s cheekbone just below lower eyelid
+o With tissue or cotton resting below lower lid, gently press downward with thumb or forefinger against bony orbit, exposing conjunctival sac.  Never press directly against patient’s eyeball.
+o Ask patient to look at ceiling. Rest dominant hand on patient’s forehead; hold filled medication eyedropper approximately ¼ to ½ inch above conjunctival sac.
+o Drop prescribed number of drops into conjunctival sac. 
+o Repeat if drops miss conjunctival sac
+o If administering medication that may cause systemic effects, apply gentle pressure to patient’s nasolacrimal duct with clean tissue for 30 to 60 seconds.  Avoid pressure directly against patient’s eyeball.
+o Perform hand hygiene
+
+Jevity Plus
+o A 1.2kcal/ml, nutritionally complete balanced tube feeding with mixed fiber and fructose-oligosaccharides (FOS), suitable for long term feeding where fiber is important to maintain normal bowel function (Abbott Nutrition. (2013) Retrieved from http://www.Abbottnutrition.co.uk/products-and-services/abbott-nutrition-products/tube-feeds/)
+  Standard Protocol - Endingo Assist client to a position of comfort, organize needed personal items within reach  
+o The client has the call light and knows how to use it 
+o Raise side rails and lower the bed to the lowest position 
+o Dispose of used supplies and equipment properly  
+o Remove and dispose of gloves (Do if appropriate)
+o Perform hand hygiene   - Gel in gel outSBAR
+
+
+Communication
+
+
+Collaboration
+
+
+
+
+Critical Thinking 
+
+
+
+
+Clinical Judgment
+
+
+
+
+Notes
+
+
+
+
+NURS 10L
+G-Tube scenario          Student Name________________________________             Date _______
+

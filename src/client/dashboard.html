@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>N10L Nursing Evaluation Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .logo h1 {
+            color: #2c3e50;
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            background: #667eea;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .logout-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: #c0392b;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .welcome-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .welcome-section h2 {
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            font-size: 28px;
+        }
+
+        .welcome-section p {
+            color: #7f8c8d;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-card h3 {
+            color: #2c3e50;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card .value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card .description {
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+
+        .weeks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .week-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .week-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .week-header {
+            padding: 1.5rem;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .week-number {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 0.5rem;
+        }
+
+        .week-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .week-scenario {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .week-content {
+            padding: 1.5rem;
+        }
+
+        .week-description {
+            color: #7f8c8d;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .week-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #ecf0f1;
+            color: #2c3e50;
+        }
+
+        .btn-secondary:hover {
+            background: #d5dbdb;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #229954;
+            transform: translateY(-2px);
+        }
+
+        .week-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 1rem 0;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .week-stat {
+            text-align: center;
+        }
+
+        .week-stat .label {
+            font-size: 12px;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .week-stat .value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-top: 5px;
+        }
+
+        .role-indicator {
+            background: #27ae60;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            text-transform: capitalize;
+        }
+
+        .role-indicator.admin {
+            background: #e74c3c;
+        }
+
+        .role-indicator.student {
+            background: #3498db;
+        }
+
+        @media (max-width: 768px) {
+            .weeks-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .container {
+                padding: 1rem;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #7f8c8d;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #ecf0f1;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="logo">
+                <div class="logo-icon">N10L</div>
+                <h1>Nursing Evaluation System</h1>
+            </div>
+            <div class="user-info">
+                <span id="userName">Loading...</span>
+                <span id="userRole" class="role-indicator">loading</span>
+                <div class="user-avatar" id="userAvatar">?</div>
+                <button class="logout-btn" onclick="logout()">Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="welcome-section">
+            <h2 id="welcomeTitle">Welcome to N10L Dashboard</h2>
+            <p id="welcomeDescription">Access your nursing evaluation scenarios and track progress across all weeks.</p>
+        </div>
+
+        <div class="stats-grid" id="statsGrid">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Loading statistics...</p>
+            </div>
+        </div>
+
+        <div class="weeks-grid" id="weeksGrid">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Loading course weeks...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+        let courses = [];
+        let evaluationStats = {};
+
+        // Initialize the dashboard
+        async function initDashboard() {
+            try {
+                await checkAuthentication();
+                await loadCourses();
+                await loadStatistics();
+                renderDashboard();
+            } catch (error) {
+                console.error('Dashboard initialization failed:', error);
+                window.location.href = '/';
+            }
+        }
+
+        // Check if user is authenticated
+        async function checkAuthentication() {
+            const token = localStorage.getItem('n10l_token');
+            if (!token) {
+                throw new Error('No token found');
+            }
+
+            try {
+                const response = await fetch('/api/auth/verify', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Token invalid');
+                }
+
+                currentUser = await response.json();
+                updateUserInterface();
+            } catch (error) {
+                localStorage.removeItem('n10l_token');
+                throw error;
+            }
+        }
+
+        // Load available courses
+        async function loadCourses() {
+            try {
+                const response = await fetch('/api/courses', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('n10l_token')}`
+                    }
+                });
+
+                if (response.ok) {
+                    courses = await response.json();
+                }
+            } catch (error) {
+                console.error('Failed to load courses:', error);
+            }
+        }
+
+        // Load evaluation statistics
+        async function loadStatistics() {
+            try {
+                const response = await fetch('/api/evaluations/stats', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('n10l_token')}`
+                    }
+                });
+
+                if (response.ok) {
+                    evaluationStats = await response.json();
+                }
+            } catch (error) {
+                console.error('Failed to load statistics:', error);
+                evaluationStats = {
+                    totalEvaluations: 0,
+                    completedEvaluations: 0,
+                    averageScore: 0,
+                    weeklyStats: []
+                };
+            }
+        }
+
+        // Update user interface based on role
+        function updateUserInterface() {
+            const userName = document.getElementById('userName');
+            const userRole = document.getElementById('userRole');
+            const userAvatar = document.getElementById('userAvatar');
+            const welcomeTitle = document.getElementById('welcomeTitle');
+            const welcomeDescription = document.getElementById('welcomeDescription');
+
+            if (currentUser) {
+                userName.textContent = currentUser.username;
+                userRole.textContent = currentUser.role;
+                userRole.className = `role-indicator ${currentUser.role}`;
+                userAvatar.textContent = currentUser.username.charAt(0).toUpperCase();
+
+                if (currentUser.role === 'admin') {
+                    welcomeTitle.textContent = 'Admin Dashboard';
+                    welcomeDescription.textContent = 'Monitor student progress, view evaluation results, and manage course content across all nursing scenarios.';
+                } else {
+                    welcomeTitle.textContent = `Welcome, ${currentUser.username}`;
+                    welcomeDescription.textContent = 'Access your nursing evaluation scenarios and track your learning progress across all course weeks.';
+                }
+            }
+        }
+
+        // Render the complete dashboard
+        function renderDashboard() {
+            renderStatistics();
+            renderWeeks();
+        }
+
+        // Render statistics cards
+        function renderStatistics() {
+            const statsGrid = document.getElementById('statsGrid');
+            
+            const stats = [
+                {
+                    title: 'Total Evaluations',
+                    value: evaluationStats.totalEvaluations || 0,
+                    description: 'Completed assessments'
+                },
+                {
+                    title: 'Average Score',
+                    value: `${evaluationStats.averageScore || 0}%`,
+                    description: 'Overall performance'
+                },
+                {
+                    title: 'Active Weeks',
+                    value: courses.filter(c => c.active).length,
+                    description: 'Available scenarios'
+                },
+                {
+                    title: 'Recent Activity',
+                    value: evaluationStats.recentEvaluations || 0,
+                    description: 'Last 7 days'
+                }
+            ];
+
+            statsGrid.innerHTML = stats.map(stat => `
+                <div class="stat-card">
+                    <h3>${stat.title}</h3>
+                    <div class="value">${stat.value}</div>
+                    <div class="description">${stat.description}</div>
+                </div>
+            `).join('');
+        }
+
+        // Render course weeks
+        function renderWeeks() {
+            const weeksGrid = document.getElementById('weeksGrid');
+            
+            if (courses.length === 0) {
+                weeksGrid.innerHTML = '<div class="loading"><p>No courses available</p></div>';
+                return;
+            }
+
+            const weekDescriptions = {
+                1: 'Personal Care Assessment focusing on stroke patient care, transfers, gait belt usage, PPE protocols, and comprehensive skin/head assessments.',
+                2: 'Vital Signs Assessment with pneumonia patient care, vital sign measurement, pain assessment, neurological evaluation, and Glasgow Coma Scale.',
+                3: 'Medication Administration covering CHF and diabetes management, insulin sliding scale, medication safety, and complex drug interactions.',
+                4: 'G-tube Management and Nutrition covering malnutrition care, PEG tube feeding, aspiration precautions, and dysphagia management.',
+                5: 'Physical Examination comprehensive assessment covering all body systems including neurological, cardiovascular, respiratory, and skin evaluation.'
+            };
+
+            weeksGrid.innerHTML = courses.map(course => {
+                const weekStats = evaluationStats.weeklyStats?.find(w => w.courseId === course.id) || 
+                                { completions: 0, averageScore: 0, totalStudents: 0 };
+                
+                return `
+                    <div class="week-card">
+                        <div class="week-header">
+                            <div class="week-number">Week ${course.week_number}</div>
+                            <div class="week-title">${course.scenario_title}</div>
+                            <div class="week-scenario">${course.week_name}</div>
+                        </div>
+                        <div class="week-content">
+                            <div class="week-description">
+                                ${weekDescriptions[course.week_number] || course.scenario_description}
+                            </div>
+                            
+                            ${currentUser.role === 'admin' ? `
+                                <div class="week-stats">
+                                    <div class="week-stat">
+                                        <div class="label">Completions</div>
+                                        <div class="value">${weekStats.completions}</div>
+                                    </div>
+                                    <div class="week-stat">
+                                        <div class="label">Avg Score</div>
+                                        <div class="value">${weekStats.averageScore}%</div>
+                                    </div>
+                                    <div class="week-stat">
+                                        <div class="label">Students</div>
+                                        <div class="value">${weekStats.totalStudents}</div>
+                                    </div>
+                                </div>
+                            ` : ''}
+                            
+                            <div class="week-actions">
+                                ${getWeekActions(course)}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Get action buttons for each week based on user role
+        function getWeekActions(course) {
+            const baseActions = [];
+            
+            if (currentUser.role === 'admin') {
+                baseActions.push(
+                    `<a href="/admin?week=${course.week_number}" class="btn btn-primary">📊 View Results</a>`,
+                    `<a href="#" onclick="exportWeekData(${course.id})" class="btn btn-secondary">📄 Export Data</a>`
+                );
+            }
+
+            // Add specific evaluation links based on week
+            switch (course.week_number) {
+                case 1:
+                    baseActions.push(`<a href="/personal-care" class="btn btn-success">🩺 Start Evaluation</a>`);
+                    break;
+                case 2:
+                    baseActions.push(`<a href="/vital-signs" class="btn btn-success">❤️ Start Assessment</a>`);
+                    break;
+                case 3:
+                    baseActions.push(`<a href="/medications" class="btn btn-success">💊 Start Evaluation</a>`);
+                    break;
+                case 4:
+                    baseActions.push(`<a href="/gtube-care" class="btn btn-success">🍽️ Start Assessment</a>`);
+                    break;
+                case 5:
+                    baseActions.push(`<a href="/physical-exam" class="btn btn-success">🔍 Start Examination</a>`);
+                    break;
+                default:
+                    baseActions.push(`<a href="#" onclick="alert('Week ${course.week_number} evaluation coming soon!')" class="btn btn-secondary">Coming Soon</a>`);
+            }
+
+            return baseActions.join('');
+        }
+
+        // Export week data (admin only)
+        async function exportWeekData(courseId) {
+            try {
+                const response = await fetch(`/api/evaluations/export/${courseId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('n10l_token')}`
+                    }
+                });
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `week_${courseId}_evaluations.csv`;
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                } else {
+                    alert('Failed to export data');
+                }
+            } catch (error) {
+                console.error('Export failed:', error);
+                alert('Export failed');
+            }
+        }
+
+        // Logout function
+        function logout() {
+            localStorage.removeItem('n10l_token');
+            window.location.href = '/';
+        }
+
+        // Initialize dashboard when page loads
+        document.addEventListener('DOMContentLoaded', initDashboard);
+    </script>
+</body>
+</html>

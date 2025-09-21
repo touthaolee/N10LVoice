@@ -1,0 +1,51 @@
+{"category":"database","database":"N10L","host":"mysql-va-units","level":"info","message":"Database Connection","password":"service_pass_2024","port":3306,"service":"n10l-evaluation-system","status":"attempting","timestamp":"2025-09-05 23:38:18","user":"va_service"}
+{"category":"database","error":"getaddrinfo ENOTFOUND mysql-va-units","level":"error","message":"Database Error","service":"n10l-evaluation-system","stack":"Error: getaddrinfo ENOTFOUND mysql-va-units\n    at Object.createConnectionPromise [as createConnection] (/app/node_modules/mysql2/promise.js:19:31)\n    at initDb (file:///app/index.js:63:37)\n    at file:///app/index.js:790:1\n    at ModuleJob.run (node:internal/modules/esm/module_job:325:25)\n    at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)","timestamp":"2025-09-05 23:38:18"}
+{"category":"database","connectionLimit":10,"database":"N10L","host":"mysql-va-units","level":"info","message":"Database Connection","service":"n10l-evaluation-system","status":"pool_created","timestamp":"2025-09-05 23:38:18"}
+{"category":"database","error":"getaddrinfo ENOTFOUND mysql-va-units","level":"error","message":"Database Error","service":"n10l-evaluation-system","stack":"Error: getaddrinfo ENOTFOUND mysql-va-units\n    at GetAddrInfoReqWrap.onlookupall [as oncomplete] (node:dns:122:26)","timestamp":"2025-09-05 23:38:18"}
+{"category":"database","database":"N10L","host":"mysql-va-units","level":"info","message":"Database Connection","password":"service_pass_2024","port":3306,"service":"n10l-evaluation-system","status":"attempting","timestamp":"2025-09-05 23:40:17","user":"va_service"}
+{"category":"database","database":"N10L","level":"info","message":"Database Connection","service":"n10l-evaluation-system","status":"database_ensured","timestamp":"2025-09-05 23:40:17"}
+{"category":"database","connectionLimit":10,"database":"N10L","host":"mysql-va-units","level":"info","message":"Database Connection","service":"n10l-evaluation-system","status":"pool_created","timestamp":"2025-09-05 23:40:17"}
+{"adminUserExists":true,"category":"database","level":"info","message":"Database Connection","service":"n10l-evaluation-system","status":"success","tablesCreated":["n10l_courses","n10l_evaluation_sessions","n10l_evaluation_items","n10l_live_sessions","users"],"timestamp":"2025-09-05 23:40:17"}
+{"level":"http","message":"GET /api/health 200 43 - 3.512 ms anonymous","service":"n10l-evaluation-system","timestamp":"2025-09-05 23:40:20"}
+{"level":"http","message":"GET /api/health 200 43 - 2.124 ms anonymous","service":"n10l-evaluation-system","timestamp":"2025-09-05 23:40:50"}
+{"level":"http","message":"GET /api/health 200 43 - 0.646 ms anonymous","service":"n10l-evaluation-system","timestamp":"2025-09-05 23:40:56"}
+{"level":"http","message":"GET /api/health 200 43 - 2.495 ms anonymous","service":"n10l-evaluation-system","timestamp":"2025-09-05 23:41:21"}
+{"level":"http","message":"HEAD /PersonalCare.html 200 75057 - 4.737 ms anonymous","service":"n10l-evaluation-system","timestamp":"2025-09-05 23:41:32"}
+{"level":"http","message":"HEAD /admin.html 200 19518 - 2.482 ms anonymous","service":"n10l-evaluation-system","timestamp":"2025-09-05 23:41:32"}
+{"level":"http","message":"GET /api/health 200 43 - 2.872 ms anonymous","service":"n10l-evaluation-system","timestamp":"2025-09-05 23:41:51"}
+{"level":"http","message":"GET /api/health 200 43 - 0.605 ms anonymous","service":"n10l-evaluation-system","timestamp":"2025-09-05 23:42:21"}
+{"level":"http","message":"GET /api/health 200 43 - 2.118 ms anonymous","service":"n10l-evaluation-system","timestamp":"2025-09-05 23:42:51"}
+{"level":"http","message":"GET /api/health 200 43 - 1.143 ms anonymous","service":"n10l-evaluation-system","timestamp":"2025-09-05 23:43:21"}
+{"level":"http","message":"GET /api/health 200 43 - 0.400 ms anonymous","service":"n10l-evaluation-system","timestamp":"2025-09-05 23:43:51"}
+{"level":"http","message":"GET /api/health 200 43 - 2.327 ms anonymous","service":"n10l-evaluation-system","timestamp":"2025-09-05 23:44:21"}
+{"level":"http","message":"GET /api/health 200 43 - 1.395 ms anonymous","service":"n10l-evaluation-system","timestamp":"2025-09-05 23:44:51"}
+{"level":"http","message":"GET /api/health 200 43 - 1.384 ms anonymous","service":"n10l-evaluation-system","timestamp":"2025-09-05 23:45:21"}
+{"level":"http","message":"GET /api/health 200 43 - 1.760 ms anonymous","service":"n10l-evaluation-system","timestamp":"2025-09-05 23:45:52"}
+{"level":"http","message":"GET /api/health 200 43 - 0.627 ms anonymous","service":"n10l-evaluation-system","timestamp":"2025-09-05 23:46:22"}
+{"level":"http","message":"GET /api/health 200 43 - 1.808 ms anonymous","service":"n10l-evaluation-system","timestamp":"2025-09-05 23:46:52"}
+{"level":"http","message":"GET /api/health 200 43 - 0.857 ms anonymous","service":"n10l-evaluation-system","timestamp":"2025-09-05 23:47:22"}
+{"level":"http","message":"GET /api/health 200 43 - 1.318 ms anonymous","service":"n10l-evaluation-system","timestamp":"2025-09-05 23:47:52"}
+{"level":"http","message":"GET /api/health 200 43 - 0.667 ms anonymous","service":"n10l-evaluation-system","timestamp":"2025-09-05 23:48:22"}
+{"level":"http","message":"GET /api/health 200 43 - 2.148 ms anonymous","service":"n10l-evaluation-system","timestamp":"2025-09-05 23:48:52"}
+{"level":"http","message":"GET /api/health 200 43 - 5.998 ms anonymous","service":"n10l-evaluation-system","timestamp":"2025-09-05 23:49:22"}
+{"level":"http","message":"GET /api/health 200 43 - 0.350 ms anonymous","service":"n10l-evaluation-system","timestamp":"2025-09-05 23:49:52"}
+{"level":"http","message":"GET /api/health 200 43 - 3.188 ms anonymous","service":"n10l-evaluation-system","timestamp":"2025-09-05 23:50:23"}
+{"level":"http","message":"GET /api/health 200 43 - 1.730 ms anonymous","service":"n10l-evaluation-system","timestamp":"2025-09-05 23:50:53"}
+{"level":"http","message":"GET /api/health 200 43 - 0.823 ms anonymous","service":"n10l-evaluation-system","timestamp":"2025-09-05 23:51:23"}
+{"level":"http","message":"GET /api/health 200 43 - 0.685 ms anonymous","service":"n10l-evaluation-system","timestamp":"2025-09-05 23:51:53"}
+{"level":"http","message":"GET /api/health 200 43 - 2.178 ms anonymous","service":"n10l-evaluation-system","timestamp":"2025-09-05 23:52:23"}
+{"level":"http","message":"GET /api/health 200 43 - 0.433 ms anonymous","service":"n10l-evaluation-system","timestamp":"2025-09-05 23:52:53"}
+{"level":"http","message":"GET /api/health 200 43 - 0.390 ms anonymous","service":"n10l-evaluation-system","timestamp":"2025-09-05 23:53:23"}
+{"level":"http","message":"GET /api/health 200 43 - 0.415 ms anonymous","service":"n10l-evaluation-system","timestamp":"2025-09-05 23:53:53"}
+{"level":"http","message":"GET /api/health 200 43 - 0.707 ms anonymous","service":"n10l-evaluation-system","timestamp":"2025-09-05 23:54:23"}
+{"level":"http","message":"GET /api/health 200 43 - 0.882 ms anonymous","service":"n10l-evaluation-system","timestamp":"2025-09-05 23:54:53"}
+{"level":"http","message":"GET /api/health 200 43 - 1.378 ms anonymous","service":"n10l-evaluation-system","timestamp":"2025-09-05 23:55:23"}
+{"level":"http","message":"GET /api/health 200 43 - 0.824 ms anonymous","service":"n10l-evaluation-system","timestamp":"2025-09-05 23:55:54"}
+{"level":"http","message":"GET /api/health 200 43 - 0.969 ms anonymous","service":"n10l-evaluation-system","timestamp":"2025-09-05 23:56:24"}
+{"level":"http","message":"GET /api/health 200 43 - 1.237 ms anonymous","service":"n10l-evaluation-system","timestamp":"2025-09-05 23:56:54"}
+{"level":"http","message":"GET /api/health 200 43 - 0.429 ms anonymous","service":"n10l-evaluation-system","timestamp":"2025-09-05 23:57:24"}
+{"level":"http","message":"GET /api/health 200 43 - 0.357 ms anonymous","service":"n10l-evaluation-system","timestamp":"2025-09-05 23:57:54"}
+{"level":"http","message":"GET /api/health 200 43 - 0.458 ms anonymous","service":"n10l-evaluation-system","timestamp":"2025-09-05 23:58:24"}
+{"level":"http","message":"GET /api/health 200 43 - 0.449 ms anonymous","service":"n10l-evaluation-system","timestamp":"2025-09-05 23:58:54"}
+{"level":"http","message":"GET /api/health 200 43 - 0.475 ms anonymous","service":"n10l-evaluation-system","timestamp":"2025-09-05 23:59:24"}
+{"level":"http","message":"GET /api/health 200 43 - 0.339 ms anonymous","service":"n10l-evaluation-system","timestamp":"2025-09-05 23:59:54"}

@@ -1,0 +1,15 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 30
+    },
+    "auditLog": "/app/logs/.fa58c4d291b1371d904715805fb9ce4035217b63-audit.json",
+    "files": [
+        {
+            "date": 1757115498218,
+            "name": "/app/logs/n10l-error-2025-09-05.log",
+            "hash": "72c1f64e41eca6c7552a5f690f588341c9e5e988b572a3b1b5d3dadc21779b93"
+        }
+    ],
+    "hashType": "sha256"
+}

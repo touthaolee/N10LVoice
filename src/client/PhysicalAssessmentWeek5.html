@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="theme-color" content="#667eea" />
+    <title>NURS 10L - Week 5 Physical Assessment</title>
+    <script src="/N10L/socket.io/socket.io.js"></script>
+    <style>
+        :root {
+            --bg: #f5f7fa;
+            --card: #ffffff;
+            --muted: #4a5568;
+            --muted-2: #718096;
+            --primary: #667eea;
+            --primary-2: #5a67d8;
+            --accent: #764ba2;
+            --pass: #48bb78;
+            --fail: #e53e3e;
+            --ok: #38a169;
+            --warn: #d69e2e;
+            --border: #e2e8f0;
+        }
+        * { box-sizing: border-box; }
+        html { font-size: clamp(18px, 5vw, 20px); }
+        html, body { height: 100%; }
+        body { margin:0; font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,Cantarell,'Helvetica Neue',Arial,sans-serif; background: var(--bg); color:#2d3748; line-height:1.6; padding:10px; -webkit-font-smoothing:antialiased; }
+        .container { max-width: 980px; margin:0 auto; background: var(--card); border-radius:14px; box-shadow:0 6px 18px rgba(0,0,0,0.08); overflow:hidden; display:flex; flex-direction:column; min-height:calc(100vh - 20px); }
+        .header { background:linear-gradient(135deg,var(--primary) 0%, var(--accent) 100%); color:#fff; padding:18px 20px 14px; text-align:center; }
+        .header h1 { margin:0 0 6px; font-size: clamp(1.4rem,5.5vw,1.85rem); font-weight:700; }
+        .header p { margin:0; opacity:.95; font-size:1rem; }
+        .progress-bar { height:10px; background:rgba(255,255,255,0.25); border-radius:6px; overflow:hidden; margin-top:12px; }
+        .progress-fill { height:100%; width:0%; background: linear-gradient(90deg,#fff 0%, #d6d6ff 100%); transition: width .25s ease; }
+        .toolbar { display:flex; gap:10px; padding:12px 16px; border-bottom:1px solid var(--border); flex-wrap:wrap; background:#fafbff; }
+        .btn { padding:14px 16px; border:0; border-radius:8px; font-weight:600; font-size:1.05rem; cursor:pointer; transition:background .2s ease, transform .05s ease; min-height:48px; }
+        .btn:active { transform: translateY(1px); }
+        .btn-primary { background: var(--primary); color:#fff; }
+        .btn-primary:hover { background: var(--primary-2); }
+        .btn-secondary { background:#e2e8f0; color:var(--muted); }
+        .btn-secondary:hover { background:#cbd5e0; }
+        .section { border-bottom:1px solid var(--border); }
+        .section-header { width:100%; text-align:left; padding:14px 16px; background:#f7fafc; border:0; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; cursor:pointer; gap:10px; min-height:48px; }
+        .section.collapsed .section-content { display:none; }
+        .section-title { margin:0; font-size:1.15rem; font-weight:700; color:#2d3748; }
+        .section-meta { color:var(--muted-2); font-size:.95rem; margin-left:auto; margin-right:10px; }
+        .toggle-icon { font-size:1.05rem; opacity:.8; }
+        .section-content { padding:16px; display:block; }
+        .student-info { padding:16px; background:#f8f9ff; border-bottom:1px solid var(--border); display:grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap:12px; }
+        .field label { display:block; font-weight:600; color:var(--muted); margin-bottom:6px; font-size:1rem; }
+        .field input, .field textarea { width:100%; padding:12px 14px; border:2px solid var(--border); border-radius:10px; font-size:1.05rem; background:#fff; }
+        .field input:focus, .field textarea:focus { outline:none; border-color: var(--primary); box-shadow:0 0 0 3px rgba(102,126,234,.15); }
+        .scenario-summary { padding:16px; background:#eef2ff; border-left:4px solid var(--primary); }
+        .scenario-summary h3 { margin:0 0 8px; color:#3730a3; }
+        .patient-info-box { background:#fff; padding:12px; border:1px solid #c7d2fe; border-radius:8px; }
+        .checklist-item { display:flex; gap:12px; align-items:flex-start; padding:12px; margin-bottom:10px; background:#f8f9ff; border:1px solid var(--border); border-radius:10px; }
+        .checkbox-container { display:flex; flex-direction:column; gap:8px; min-width:120px; }
+        .checkbox-group { display:inline-flex; align-items:center; gap:8px; }
+        .checkbox { width:26px; height:26px; cursor:pointer; }
+        .checkbox.pass { accent-color: var(--pass); }
+        .checkbox.fail { accent-color: var(--fail); }
+        .checkbox-label { font-size:.9rem; font-weight:700; user-select:none; }
+        .checkbox-label.pass { color:#2f855a; }
+        .checkbox-label.fail { color:#c53030; }
+        .item-text { flex:1; font-size:1rem; line-height:1.45; }
+        .checklist-item.checked { background:#f2fff6; border-color:#bdebcf; }
+        .checklist-item.failed { background:#fff5f5; border-color:#f9b3b3; }
+        .critical-badge { display:inline-block; background:#e53e3e; color:#fff; font-size:.55rem; padding:3px 6px 2px; border-radius:6px; margin-left:8px; letter-spacing:.5px; font-weight:700; position:relative; top:-1px; }
+        .scorebar { margin-top:auto; position:sticky; bottom:0; background:#fff; border-top:1px solid var(--border); padding:12px 16px calc(12px + env(safe-area-inset-bottom)); display:grid; grid-template-columns:repeat(3,auto) 1fr; gap:12px; align-items:center; }
+        .pill { padding:8px 14px; border-radius:999px; color:#fff; font-weight:700; font-size:.95rem; }
+        .pill.primary { background: var(--primary); }
+        .pill.fail { background: var(--fail); }
+        .pill.score { background: var(--fail); }
+        /* Guided Mode Additions */
+        .incomplete-focus { outline:3px solid var(--warn); animation: pulseOutline 1.2s ease-in-out infinite; border-radius:10px; }
+        @keyframes pulseOutline { 0%{outline-color: var(--warn);} 50%{outline-color: rgba(214,158,46,0.2);} 100%{outline-color: var(--warn);} }
+        #guidedToastRoot { position:fixed; bottom:18px; left:0; right:0; display:flex; justify-content:center; z-index:1200; pointer-events:none; }
+        .guided-toast { background:#1e293b; color:#fff; padding:18px 20px; border-radius:14px; box-shadow:0 10px 28px -4px rgba(0,0,0,.35); max-width:680px; width:92%; display:flex; flex-direction:column; gap:14px; pointer-events:auto; font-size:.95rem; }
+        .guided-title { font-weight:700; font-size:1.05rem; letter-spacing:.5px; }
+        .guided-progress { font-size:.75rem; opacity:.75; }
+        .guided-actions { display:flex; flex-wrap:wrap; gap:10px; }
+        .guided-btn { flex:1 1 auto; border:0; border-radius:10px; padding:12px 14px; font-weight:600; font-size:.85rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; }
+        .guided-btn.pass { background:#16a34a; color:#fff; }
+        .guided-btn.fail { background:#dc2626; color:#fff; }
+        .guided-btn.skip { background:#475569; color:#fff; }
+        .guided-btn.cancel { background:#334155; color:#fff; }
+        .guided-btn.complete { background:var(--primary); color:#fff; }
+        .guided-btn:hover { filter:brightness(1.05); }
+        @media (max-width:560px){
+            .checklist-item { flex-direction:column; }
+            .checkbox-container { flex-direction:row; align-items:center; min-width:auto; }
+            .scorebar { display:flex; flex-wrap:wrap; gap:6px 10px; }
+            .pill { font-size:.8rem; padding:6px 10px; }
+            .guided-actions { flex-direction:column; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>NURS 10L - Week 5 Physical Assessment</h1>
+            <p>Comprehensive Head-to-Toe Evaluation</p>
+            <div class="progress-bar"><div id="progressFill" class="progress-fill"></div></div>
+        </div>
+        <div class="toolbar">
+            <button type="button" class="btn btn-secondary" id="expandAll">Expand all</button>
+            <button type="button" class="btn btn-secondary" id="collapseAll">Collapse all</button>
+            <button type="button" class="btn btn-secondary" id="resetForm">Reset form</button>
+            <button type="button" class="btn btn-secondary" id="switchStudent">Switch / Logout</button>
+            <button type="button" class="btn btn-primary" id="downloadReport">Generate report</button>
+            <button type="button" class="btn btn-primary" id="submitEvaluation" style="background: var(--ok); margin-left:10px;">Submit Assessment</button>
+        </div>
+        <form id="evaluationForm">
+            <div class="student-info">
+                <div class="field">
+                    <label for="studentName">Student Being Evaluated 🔒</label>
+                    <input id="studentName" name="studentName" type="text" required readonly style="background:#f8f9fa; color:#495057; border:2px solid #28a745; font-weight:bold;" />
+                    <small style="color:#28a745; font-size:.7rem; display:block; margin-top:4px;">Locked to logged-in user</small>
+                </div>
+                <div class="field">
+                    <label for="evaluatorName">Evaluator Name</label>
+                    <input id="evaluatorName" name="evaluatorName" type="text" required />
+                </div>
+                <div class="field">
+                    <label for="evaluationDate">Date</label>
+                    <input id="evaluationDate" name="evaluationDate" type="date" required />
+                </div>
+                <div class="field">
+                    <label for="scenarioTime">Assessment Time</label>
+                    <input id="scenarioTime" name="scenarioTime" type="text" value="0900" />
+                </div>
+            </div>
+            <div class="scenario-summary">
+                <h3>Assessment Guidance</h3>
+                <div class="patient-info-box">
+                    Perform a systematic head‑to‑toe physical assessment. For each system: state normal findings, identify deviations, and document supportive data. Mark PASS if assessed accurately & documented; FAIL if omitted, incomplete, unsafe, or incorrect interpretation. Critical elements reflect safety or core neurological/respiratory status.
+                </div>
+            </div>
+
+            <!-- General Appearance -->
+            <div class="section" id="sec-general">
+                <button type="button" class="section-header" aria-expanded="true" onclick="toggleSection(this)"><span class="section-title">General Appearance</span><span class="section-meta" data-count="sec-general"></span><span class="toggle-icon">▾</span></button>
+                <div class="section-content">
+                    <div class="checklist-item"><div class="checkbox-container"><label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="ga_nutrition" /><span class="checkbox-label pass">✓ PASS</span></label><label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="ga_nutrition" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label></div><div class="item-text">States nutrition & habitus (well-nourished / proportionate / no distress)</div></div>
+                    <div class="checklist-item"><div class="checkbox-container"><label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="ga_comfort" /><span class="checkbox-label pass">✓ PASS</span></label><label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="ga_comfort" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label></div><div class="item-text">Describes comfort / no acute distress / appropriate posture</div></div>
+                    <div class="checklist-item"><div class="checkbox-container"><label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="ga_symmetry" /><span class="checkbox-label pass">✓ PASS</span></label><label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="ga_symmetry" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label></div><div class="item-text">Notes facial/body symmetry & mobility</div></div>
+                </div>
+            </div>
+
+            <!-- Neurological -->
+            <div class="section" id="sec-neuro">
+                <button type="button" class="section-header" aria-expanded="true" onclick="toggleSection(this)"><span class="section-title">Neurological System</span><span class="section-meta" data-count="sec-neuro"></span><span class="toggle-icon">▾</span></button>
+                <div class="section-content">
+                    <div class="checklist-item"><div class="checkbox-container"><label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="neuro_orientation" data-critical="true" /><span class="checkbox-label pass">✓ PASS</span></label><label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="neuro_orientation" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label></div><div class="item-text">Assesses orientation x3 (person/place/time) & documents A&O status<span class="critical-badge">CRITICAL</span></div></div>
+                    <div class="checklist-item"><div class="checkbox-container"><label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="neuro_memory" /><span class="checkbox-label pass">✓ PASS</span></label><label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="neuro_memory" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label></div><div class="item-text">Notes short & long‑term memory / follows commands</div></div>
+                    <div class="checklist-item"><div class="checkbox-container"><label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="neuro_motor" /><span class="checkbox-label pass">✓ PASS</span></label><label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="neuro_motor" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label></div><div class="item-text">Assesses motor strength & coordination (bilateral & equal)</div></div>
+                    <div class="checklist-item"><div class="checkbox-container"><label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="neuro_pupils" data-critical="true" /><span class="checkbox-label pass">✓ PASS</span></label><label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="neuro_pupils" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label></div><div class="item-text">Assesses pupils (PERRLA) & ocular movements intact<span class="critical-badge">CRITICAL</span></div></div>
+                    <div class="checklist-item"><div class="checkbox-container"><label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="neuro_gcs" /><span class="checkbox-label pass">✓ PASS</span></label><label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="neuro_gcs" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label></div><div class="item-text">States Glasgow Coma Scale (15/15 if normal)</div></div>
+                </div>
+            </div>
+
+            <!-- Psychological -->
+            <div class="section" id="sec-psych">
+                <button type="button" class="section-header" aria-expanded="true" onclick="toggleSection(this)"><span class="section-title">Psychological / Behavioral</span><span class="section-meta" data-count="sec-psych"></span><span class="toggle-icon">▾</span></button>
+                <div class="section-content">
+                    <div class="checklist-item"><div class="checkbox-container"><label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="psych_affect" /><span class="checkbox-label pass">✓ PASS</span></label><label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="psych_affect" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label></div><div class="item-text">Describes affect & mood (calm, cooperative, appropriate)</div></div>
+                    <div class="checklist-item"><div class="checkbox-container"><label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="psych_speech" /><span class="checkbox-label pass">✓ PASS</span></label><label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="psych_speech" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label></div><div class="item-text">Assesses speech (clear, articulate, normal pace/rhythm)</div></div>
+                    <div class="checklist-item"><div class="checkbox-container"><label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="psych_interaction" /><span class="checkbox-label pass">✓ PASS</span></label><label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="psych_interaction" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label></div><div class="item-text">Notes engagement & appropriateness of interaction</div></div>
+                    <div class="checklist-item"><div class="checkbox-container"><label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="psych_hygiene" /><span class="checkbox-label pass">✓ PASS</span></label><label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="psych_hygiene" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label></div><div class="item-text">Comments on personal hygiene / grooming</div></div>
+                </div>
+            </div>
+
+            <!-- Head / Face / Mouth -->
+            <div class="section" id="sec-head">
+                <button type="button" class="section-header" aria-expanded="true" onclick="toggleSection(this)"><span class="section-title">Head, Face, Mouth & Mucous Membranes</span><span class="section-meta" data-count="sec-head"></span><span class="toggle-icon">▾</span></button>
+                <div class="section-content">
+                    <div class="checklist-item"><div class="checkbox-container"><label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="head_shape" /><span class="checkbox-label pass">✓ PASS</span></label><label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="head_shape" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label></div><div class="item-text">Head normocephalic, atraumatic; no masses/tenderness</div></div>
+                    <div class="checklist-item"><div class="checkbox-container"><label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="hair_distribution" /><span class="checkbox-label pass">✓ PASS</span></label><label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="hair_distribution" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label></div><div class="item-text">Hair even distribution; scalp clean; appropriate texture</div></div>
+                    <div class="checklist-item"><div class="checkbox-container"><label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="face_symmetry" /><span class="checkbox-label pass">✓ PASS</span></label><label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="face_symmetry" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label></div><div class="item-text">Facial movement symmetrical (no droop / abnormal motion)</div></div>
+                    <div class="checklist-item"><div class="checkbox-container"><label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="teeth_condition" /><span class="checkbox-label pass">✓ PASS</span></label><label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="teeth_condition" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label></div><div class="item-text">Teeth intact / appliances fit / breath neutral</div></div>
+                    <div class="checklist-item"><div class="checkbox-container"><label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="mucosa_status" /><span class="checkbox-label pass">✓ PASS</span></label><label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="mucosa_status" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label></div><div class="item-text">Oral mucosa & gums moist, pink, intact; no lesions/bleeding</div></div>
+                </div>
+            </div>
+
+            <!-- Skin / Hair / Nails -->
+            <div class="section" id="sec-skin">
+                <button type="button" class="section-header" aria-expanded="true" onclick="toggleSection(this)"><span class="section-title">Skin, Hair & Nails</span><span class="section-meta" data-count="sec-skin"></span><span class="toggle-icon">▾</span></button>
+                <div class="section-content">
+                    <div class="checklist-item"><div class="checkbox-container"><label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="skin_color" /><span class="checkbox-label pass">✓ PASS</span></label><label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="skin_color" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label></div><div class="item-text">Describes skin tone & pigmentation (no cyanosis/jaundice)</div></div>
+                    <div class="checklist-item"><div class="checkbox-container"><label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="skin_temp" /><span class="checkbox-label pass">✓ PASS</span></label><label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="skin_temp" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label></div><div class="item-text">States temperature & moisture (warm / dry / equal)</div></div>
+                    <div class="checklist-item"><div class="checkbox-container"><label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="skin_turgor" /><span class="checkbox-label pass">✓ PASS</span></label><label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="skin_turgor" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label></div><div class="item-text">Assesses turgor (prompt return / no tenting)</div></div>
+                    <div class="checklist-item"><div class="checkbox-container"><label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="skin_lesions" /><span class="checkbox-label pass">✓ PASS</span></label><label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="skin_lesions" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label></div><div class="item-text">Identifies lesions/moles/scars (none suspicious)</div></div>
+                    <div class="checklist-item"><div class="checkbox-container"><label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="pressure_risk" /><span class="checkbox-label pass">✓ PASS</span></label><label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="pressure_risk" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label></div><div class="item-text">Assesses pressure areas (intact / no erythema)</div></div>
+                    <div class="checklist-item"><div class="checkbox-container"><label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="nails_caprefill" /><span class="checkbox-label pass">✓ PASS</span></label><label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="nails_caprefill" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label></div><div class="item-text">Nails smooth / pink / cap refill &lt; 2 sec / no clubbing</div></div>
+                </div>
+            </div>
+
+            <!-- Respiratory -->
+            <div class="section" id="sec-resp">
+                <button type="button" class="section-header" aria-expanded="true" onclick="toggleSection(this)"><span class="section-title">Respiratory System</span><span class="section-meta" data-count="sec-resp"></span><span class="toggle-icon">▾</span></button>
+                <div class="section-content">
+                    <div class="checklist-item"><div class="checkbox-container"><label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="resp_effort" data-critical="true" /><span class="checkbox-label pass">✓ PASS</span></label><label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="resp_effort" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label></div><div class="item-text">Observes even, unlabored respirations (no accessory use)<span class="critical-badge">CRITICAL</span></div></div>
+                    <div class="checklist-item"><div class="checkbox-container"><label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="resp_chestshape" /><span class="checkbox-label pass">✓ PASS</span></label><label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="resp_chestshape" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label></div><div class="item-text">Notes AP:transverse ratio ~1:2, symmetrical expansion</div></div>
+                    <div class="checklist-item"><div class="checkbox-container"><label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="resp_sounds" data-critical="true" /><span class="checkbox-label pass">✓ PASS</span></label><label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="resp_sounds" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label></div><div class="item-text">Auscultates all lobes – clear; no wheezes/rales/rhonchi<span class="critical-badge">CRITICAL</span></div></div>
+                </div>
+            </div>
+
+            <!-- Cardiovascular -->
+            <div class="section" id="sec-cardio">
+                <button type="button" class="section-header" aria-expanded="true" onclick="toggleSection(this)"><span class="section-title">Cardiovascular System</span><span class="section-meta" data-count="sec-cardio"></span><span class="toggle-icon">▾</span></button>
+                <div class="section-content">
+                    <div class="checklist-item"><div class="checkbox-container"><label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="cardio_rate_rhythm" /><span class="checkbox-label pass">✓ PASS</span></label><label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="cardio_rate_rhythm" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label></div><div class="item-text">States HR 60–100 & regular rhythm (no skipped beats)</div></div>
+                    <div class="checklist-item"><div class="checkbox-container"><label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="cardio_heart_sounds" /><span class="checkbox-label pass">✓ PASS</span></label><label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="cardio_heart_sounds" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label></div><div class="item-text">Identifies S1/S2; no murmurs/rubs/extra sounds</div></div>
+                    <div class="checklist-item"><div class="checkbox-container"><label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="cardio_peripheral_pulses" /><span class="checkbox-label pass">✓ PASS</span></label><label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="cardio_peripheral_pulses" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label></div><div class="item-text">Palpates peripheral pulses bilaterally 2+ & equal</div></div>
+                    <div class="checklist-item"><div class="checkbox-container"><label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="cardio_caprefill" /><span class="checkbox-label pass">✓ PASS</span></label><label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="cardio_caprefill" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label></div><div class="item-text">Capillary refill fingers/toes &lt; 2 sec</div></div>
+                    <div class="checklist-item"><div class="checkbox-container"><label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="cardio_edema" /><span class="checkbox-label pass">✓ PASS</span></label><label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="cardio_edema" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label></div><div class="item-text">Assesses edema (none present)</div></div>
+                </div>
+            </div>
+
+            <!-- Abdomen -->
+            <div class="section" id="sec-abdomen">
+                <button type="button" class="section-header" aria-expanded="true" onclick="toggleSection(this)"><span class="section-title">Abdominal Assessment</span><span class="section-meta" data-count="sec-abdomen"></span><span class="toggle-icon">▾</span></button>
+                <div class="section-content">
+                    <div class="checklist-item"><div class="checkbox-container"><label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="abdomen_contour" /><span class="checkbox-label pass">✓ PASS</span></label><label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="abdomen_contour" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label></div><div class="item-text">Describes contour (flat/rounded; symmetrical)</div></div>
+                    <div class="checklist-item"><div class="checkbox-container"><label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="abdomen_bowel_sounds" /><span class="checkbox-label pass">✓ PASS</span></label><label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="abdomen_bowel_sounds" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label></div><div class="item-text">Auscultates all 4 quadrants – normoactive; no bruits</div></div>
+                    <div class="checklist-item"><div class="checkbox-container"><label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="abdomen_percussion" /><span class="checkbox-label pass">✓ PASS</span></label><label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="abdomen_percussion" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label></div><div class="item-text">Percussion predominant tympany (expected areas dull)</div></div>
+                    <div class="checklist-item"><div class="checkbox-container"><label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="abdomen_palpation" /><span class="checkbox-label pass">✓ PASS</span></label><label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="abdomen_palpation" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label></div><div class="item-text">Palpates – soft, non‑tender; no masses/organomegaly</div></div>
+                    <div class="checklist-item"><div class="checkbox-container"><label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="abdomen_lbm" /><span class="checkbox-label pass">✓ PASS</span></label><label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="abdomen_lbm" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label></div><div class="item-text">Identifies last bowel movement (WNL)</div></div>
+                </div>
+            </div>
+
+            <!-- Urinary / Genitalia -->
+            <div class="section" id="sec-gu">
+                <button type="button" class="section-header" aria-expanded="true" onclick="toggleSection(this)"><span class="section-title">Urinary / Genitalia</span><span class="section-meta" data-count="sec-gu"></span><span class="toggle-icon">▾</span></button>
+                <div class="section-content">
+                    <div class="checklist-item"><div class="checkbox-container"><label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="gu_inspection" /><span class="checkbox-label pass">✓ PASS</span></label><label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="gu_inspection" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label></div><div class="item-text">Verbalizes external inspection findings (pink, intact; no lesions)</div></div>
+                    <div class="checklist-item"><div class="checkbox-container"><label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="gu_irritation" /><span class="checkbox-label pass">✓ PASS</span></label><label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="gu_irritation" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label></div><div class="item-text">Asks about irritation / discharge / dysuria – none reported</div></div>
+                    <div class="checklist-item"><div class="checkbox-container"><label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="gu_voiding" /><span class="checkbox-label pass">✓ PASS</span></label><label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="gu_voiding" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label></div><div class="item-text">States continent; urine clear yellow; no urgency/frequency</div></div>
+                    <div class="checklist-item"><div class="checkbox-container"><label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="gu_catheter" /><span class="checkbox-label pass">✓ PASS</span></label><label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="gu_catheter" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label></div><div class="item-text">(If catheter) site clean/intact; drainage appropriate (or N/A)</div></div>
+                </div>
+            </div>
+
+            <!-- Musculoskeletal -->
+            <div class="section" id="sec-msk">
+                <button type="button" class="section-header" aria-expanded="true" onclick="toggleSection(this)"><span class="section-title">Musculoskeletal System</span><span class="section-meta" data-count="sec-msk"></span><span class="toggle-icon">▾</span></button>
+                <div class="section-content">
+                    <div class="checklist-item"><div class="checkbox-container"><label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="msk_symmetry" /><span class="checkbox-label pass">✓ PASS</span></label><label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="msk_symmetry" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label></div><div class="item-text">Joint & muscle symmetry; no deformities/redness/swelling</div></div>
+                    <div class="checklist-item"><div class="checkbox-container"><label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="msk_rom" /><span class="checkbox-label pass">✓ PASS</span></label><label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="msk_rom" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label></div><div class="item-text">Demonstrates & states full ROM (no contractures)</div></div>
+                    <div class="checklist-item"><div class="checkbox-container"><label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="msk_strength" /><span class="checkbox-label pass">✓ PASS</span></label><label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="msk_strength" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label></div><div class="item-text">Assesses bilateral muscle strength 5/5</div></div>
+                    <div class="checklist-item"><div class="checkbox-container"><label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="msk_gait" /><span class="checkbox-label pass">✓ PASS</span></label><label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="msk_gait" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label></div><div class="item-text">Describes gait steady, balanced, symmetric arm swing</div></div>
+                </div>
+            </div>
+
+            <!-- Notes -->
+            <div class="section" id="sec-notes">
+                <button type="button" class="section-header" aria-expanded="true" onclick="toggleSection(this)"><span class="section-title">Assessment Notes & Clinical Judgment</span><span class="toggle-icon">▾</span></button>
+                <div class="section-content">
+                    <div class="field"><label for="summary_notes">Synthesis / Significant Findings</label><textarea id="summary_notes" placeholder="Summarize overall normal vs abnormal findings; any follow‑up actions or referrals needed..." style="min-height:130px;"></textarea></div>
+                    <div class="field"><label for="safety_notes">Safety / Risk Considerations</label><textarea id="safety_notes" placeholder="Falls, aspiration, skin integrity, neuro changes to monitor..." style="min-height:110px;"></textarea></div>
+                    <div class="field"><label for="followup_notes">Planned Nursing Interventions</label><textarea id="followup_notes" placeholder="List prioritized interventions based on assessment..." style="min-height:110px;"></textarea></div>
+                </div>
+            </div>
+        </form>
+
+        <div class="scorebar">
+            <div><strong>Completed:</strong> <span id="completedScore" class="pill primary">0 / 0</span></div>
+            <div><strong>Failed:</strong> <span id="failedScore" class="pill fail">0</span></div>
+            <div><strong>Critical Fails:</strong> <span id="criticalFailedScore" class="pill fail">0</span></div>
+            <div><strong>Score:</strong> <span id="overallScore" class="pill score">0%</span></div>
+            <div style="text-align:right; color: var(--muted-2); font-size:.75rem;">Progress auto-saves locally</div>
+        </div>
+    </div>
+
+    <!-- Guided Toast Root -->
+    <div id="guidedToastRoot" aria-live="polite"></div>
+
+    <!-- Login Modal -->
+    <div id="loginModal" style="position:fixed; inset:0; background:rgba(0,0,0,0.8); display:flex; justify-content:center; align-items:center; z-index:1000;">
+        <div style="background:#fff; padding:30px; border-radius:15px; box-shadow:0 10px 30px rgba(0,0,0,0.3); max-width:420px; width:92%;">
+            <h2 style="text-align:center; color:var(--primary); margin:0 0 8px;">🩺 Week 5 Sign-In</h2>
+            <p style="text-align:center; color:var(--muted); margin:0 0 24px; font-size:.9rem;">Enter your full name and institutional password to begin the physical assessment.</p>
+            <form id="loginForm">
+                <div style="margin-bottom:18px;">
+                    <label for="loginStudentName" style="display:block; font-weight:600; margin-bottom:6px;">Student Name</label>
+                    <input id="loginStudentName" type="text" required placeholder="Full name" style="width:100%; padding:12px; border:2px solid var(--border); border-radius:8px; font-size:16px;" />
+                </div>
+                <div style="margin-bottom:22px;">
+                    <label for="loginPassword" style="display:block; font-weight:600; margin-bottom:6px;">Password</label>
+                    <input id="loginPassword" type="password" required placeholder="Institution password" style="width:100%; padding:12px; border:2px solid var(--border); border-radius:8px; font-size:16px;" />
+                    <small style="color:var(--muted); display:block; margin-top:6px; font-size:.7rem;">Use your standard student password.</small>
+                </div>
+                <button type="submit" style="width:100%; padding:14px; background:var(--primary); color:#fff; border:none; border-radius:10px; font-size:16px; font-weight:600; cursor:pointer;">Start Assessment</button>
+            </form>
+            <div id="loginError" style="color:var(--fail); text-align:center; margin-top:14px; display:none; font-size:.8rem;"></div>
+        </div>
+    </div>
+
+    <div id="connectionStatus" style="position:fixed; top:16px; right:16px; padding:8px 15px; border-radius:20px; font-size:12px; font-weight:600; display:none; z-index:999; color:#fff;"></div>
+
+    <script>
+        const BASE_PATH = location.pathname.toLowerCase().startsWith('/n10lvoice/') ? '/N10LVoice' : '';
+        const API_BASE = `${BASE_PATH}/api`;
+        const SOCKET_PATH = `${BASE_PATH}/socket.io`;
+        let socket = null; let sessionId = localStorage.getItem('studentSession'); let studentName = localStorage.getItem('studentName');
+        let evaluationStartTime = null; let reconnectAttempts=0; const maxReconnectAttempts=5; let reconnectInterval=null; let isManualDisconnect=false;
+
+        const $$ = (s,r=document)=>Array.from(r.querySelectorAll(s)); const $ = (s,r=document)=>r.querySelector(s);
+
+        function showLoginModal(){ document.getElementById('loginModal').style.display='flex'; }
+        function hideLoginModal(){ document.getElementById('loginModal').style.display='none'; }
+
+        async function checkExistingSession(){
+            if(sessionId && studentName){
+                try { const resp = await fetch(`${API_BASE}/auth/validate-session`, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({sessionId})});
+                    if(resp.ok){ connectSocket(); setTimeout(loadState,800); return; }
+                } catch(e){}
+                localStorage.removeItem('studentSession'); localStorage.removeItem('studentName'); sessionId=null; studentName=null;
+            }
+            showLoginModal();
+        }
+        checkExistingSession();
+
+        function updateConnectionStatus(status, attempts=0){
+            const el = document.getElementById('connectionStatus'); el.style.display='block';
+            if(status==='connected'){ el.style.background='#16a34a'; el.textContent='🟢 Connected'; }
+            else if(status==='disconnected'){ el.style.background='#dc2626'; el.textContent='🔴 Disconnected'; }
+            else if(status==='reconnecting'){ el.style.background='#d97706'; el.textContent=`🟡 Reconnecting (${attempts}/${maxReconnectAttempts})`; }
+            else if(status==='failed'){ el.style.background='#b91c1c'; el.textContent='Connection Failed'; }
+            else { el.style.background='#475569'; el.textContent='Status Unknown'; }
+        }
+
+        function connectSocket(){ if(!studentName || !sessionId) return; socket = io({ path: SOCKET_PATH, auth:{ sessionId }, reconnection:true, reconnectionAttempts:maxReconnectAttempts });
+            socket.on('connect', ()=>{ updateConnectionStatus('connected'); if(!evaluationStartTime) evaluationStartTime=new Date().toISOString(); sendProgressUpdate(); });
+            socket.on('disconnect', r=>{ updateConnectionStatus('disconnected'); if(!isManualDisconnect) startReconnectionProcess(); });
+            socket.on('reconnect_attempt', a=> updateConnectionStatus('reconnecting', a));
+            socket.on('reconnect_failed', ()=> updateConnectionStatus('failed')); }
+
+        function startReconnectionProcess(){ if(reconnectInterval) return; reconnectInterval=setInterval(async()=>{ reconnectAttempts++; updateConnectionStatus('reconnecting', reconnectAttempts); if(reconnectAttempts>=maxReconnectAttempts){ clearInterval(reconnectInterval); reconnectInterval=null; updateConnectionStatus('failed'); return;} attemptReconnection(); },3000); }
+        async function attemptReconnection(){ try{ const r= await fetch(`${API_BASE}/auth/validate-session`, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({sessionId})}); if(r.ok){ if(socket) socket.disconnect(); connectSocket(); } else logout(); }catch(e){} }
+        function logout(){ isManualDisconnect=true; clearInterval(reconnectInterval); reconnectInterval=null; localStorage.removeItem('studentSession'); localStorage.removeItem('studentName'); localStorage.removeItem('week5_assessment_state'); sessionId=null; studentName=null; evaluationStartTime=null; if(socket){ socket.disconnect(); socket=null;} isManualDisconnect=false; showLoginModal(); updateConnectionStatus('disconnected'); }
+
+        document.getElementById('loginForm').addEventListener('submit', async e=>{
+            e.preventDefault(); const name = document.getElementById('loginStudentName').value.trim(); const pass = document.getElementById('loginPassword').value; if(!name){ return showError('Enter your name'); } if(!pass){ return showError('Password required'); }
+            try { const resp = await fetch(`${API_BASE}/auth/login`, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({username:name, password:pass})}); const data = await resp.json(); if(!resp.ok || !data.sessionId) throw new Error(data.error||'Login failed'); clearForNewStudent(data.studentName); studentName=data.studentName; sessionId=data.sessionId; localStorage.setItem('studentName', studentName); localStorage.setItem('studentSession', sessionId); hideLoginModal(); lockStudentName(); connectSocket(); } catch(err){ showError(err.message); }
+        });
+
+        function showError(msg){ const el=document.getElementById('loginError'); el.textContent=msg; el.style.display='block'; setTimeout(()=> el.style.display='none',5000); }
+        function showSuccess(msg){ const div=document.createElement('div'); div.style.cssText='position:fixed;top:20px;right:20px;background:#16a34a;color:#fff;padding:10px 16px;border-radius:6px;font-weight:600;z-index:1100;'; div.textContent=msg; document.body.appendChild(div); setTimeout(()=>div.remove(),3500); }
+
+        function lockStudentName(){ const f=$('#studentName'); if(f){ f.value=studentName; f.readonly=true; f.style.border='2px solid #28a745'; f.style.background='#f1f5f9'; f.title='Locked to session'; } }
+
+        function clearForNewStudent(newName){ const prev=localStorage.getItem('studentName'); if(prev && prev.toLowerCase()!==newName.toLowerCase()){ localStorage.removeItem('week5_assessment_state'); $$('.checklist-item').forEach(ci=>{ ci.classList.remove('checked','failed'); ci.querySelectorAll('input[type="checkbox"]').forEach(c=> c.checked=false); }); ['evaluatorName','summary_notes','safety_notes','followup_notes'].forEach(id=>{ const el=$('#'+id); if(el) el.value='';}); updateCounts(); showSuccess('Previous student data cleared'); }}
+
+        function toggleSection(btn){ const section=btn.closest('.section'); const expanded = btn.getAttribute('aria-expanded')==='true'; btn.setAttribute('aria-expanded', String(!expanded)); section.classList.toggle('collapsed', expanded); }
+
+        function collectItems(){ return $$('.checklist-item').map(item=>{ const pass=item.querySelector('input.checkbox.pass'); const fail=item.querySelector('input.checkbox.fail'); const key= pass?.getAttribute('data-key'); return { key, passed: pass?.checked || false, failed: fail?.checked || false, critical: pass?.dataset.critical==='true', text: item.querySelector('.item-text')?.textContent.trim() }; }); }
+
+        function getScore(){ const items=collectItems(); let passed=0, failed=0, criticalFailed=0; items.forEach(i=>{ if(i.passed) passed++; else if(i.failed){ failed++; if(i.critical) criticalFailed++; } }); const total=items.length; const pct= total? Math.round((passed/total)*100):0; return {passed, failed, criticalFailed, total, pct}; }
+
+        function updateCounts(){ const items=$$('.checklist-item'); const passed=items.filter(i=> i.classList.contains('checked')).length; const failed=items.filter(i=> i.classList.contains('failed')).length; const total=items.length; const criticalFailed=items.filter(i=> i.classList.contains('failed') && i.querySelector('input.checkbox.pass[data-critical="true"]')).length; const pct= total? Math.round((passed/total)*100):0; $('#completedScore').textContent=`${passed} / ${total}`; $('#failedScore').textContent=failed; $('#criticalFailedScore').textContent=criticalFailed; const scoreEl=$('#overallScore'); scoreEl.textContent=`${pct}%`; scoreEl.style.background = pct>=90? 'var(--ok)': (pct>=75? 'var(--warn)': 'var(--fail)'); const done = passed+failed; $('#progressFill').style.width = total? ((done/total)*100)+'%':'0%'; // per-section
+            $$('.section').forEach(sec=>{ const items=$$('.checklist-item', sec); if(!items.length) return; const p=items.filter(i=> i.classList.contains('checked')).length; const f=items.filter(i=> i.classList.contains('failed')).length; const meta=$('[data-count]', sec); if(meta) meta.textContent=`${p}✓ / ${f}✗ of ${items.length}`; }); sendProgressUpdate(); saveState(); }
+
+        document.body.addEventListener('change', e=>{ const input=e.target; if(!(input instanceof HTMLInputElement)) return; if(!input.classList.contains('checkbox')) return; const item=input.closest('.checklist-item'); const key=input.getAttribute('data-key'); const isFail=input.hasAttribute('data-fail'); // mutually exclusive
+            $$(`input[data-key="${key}"]`, item).forEach(s=>{ if(s!==input) s.checked=false; }); if(input.checked){ if(isFail){ item.classList.add('failed'); item.classList.remove('checked'); } else { item.classList.add('checked'); item.classList.remove('failed'); }} else { item.classList.remove('checked','failed'); } updateCounts(); });
+
+        function saveState(){ const state={ studentName: $('#studentName').value, evaluatorName: $('#evaluatorName').value, date: $('#evaluationDate').value, time: $('#scenarioTime').value, notes:{ summary: $('#summary_notes').value, safety: $('#safety_notes').value, follow: $('#followup_notes').value }, items: collectItems() }; localStorage.setItem('week5_assessment_state', JSON.stringify(state)); }
+        function loadState(){ const raw=localStorage.getItem('week5_assessment_state'); if(!raw) return; try { const state=JSON.parse(raw); if(state.studentName) $('#studentName').value=state.studentName; if(state.evaluatorName) $('#evaluatorName').value=state.evaluatorName; if(state.date) $('#evaluationDate').value=state.date; if(state.time) $('#scenarioTime').value=state.time; if(state.notes){ $('#summary_notes').value=state.notes.summary||''; $('#safety_notes').value=state.notes.safety||''; $('#followup_notes').value=state.notes.follow||''; } if(Array.isArray(state.items)){ state.items.forEach(entry=>{ if(!entry.key) return; const pass=$(`input.checkbox.pass[data-key="${entry.key}"]`); const fail=$(`input.checkbox.fail[data-key="${entry.key}"]`); if(!pass || !fail) return; if(entry.failed){ fail.checked=true; pass.checked=false; const ci=fail.closest('.checklist-item'); ci?.classList.add('failed'); } else if(entry.passed){ pass.checked=true; fail.checked=false; const ci=pass.closest('.checklist-item'); ci?.classList.add('checked'); } }); } updateCounts(); } catch{} }
+
+        function generateReport(){ const sName=$('#studentName').value.trim(); const evalName=$('#evaluatorName').value.trim(); const date=$('#evaluationDate').value; if(!sName||!evalName||!date){ alert('Fill Student, Evaluator, and Date first.'); return; } const items=collectItems(); const passed=items.filter(i=>i.passed); const failed=items.filter(i=>i.failed); const total=items.length; const pct= total? Math.round((passed.length/total)*100):0; let report='NURS 10L - Week 5 Physical Assessment Report\n================================================\n\n'; report+=`Student: ${sName}\nEvaluator: ${evalName}\nDate: ${date}\nScenario: Week 5 Head-to-Toe\n\nSUMMARY\n-------\nCompleted: ${passed.length}/${total}\nFailed: ${failed.length}\nScore: ${pct}%\n\n`; if(passed.length){ report+='PASSED ITEMS\n------------\n'; passed.forEach(i=> report+='✓ '+i.text+'\n'); report+='\n'; } if(failed.length){ report+='FAILED ITEMS\n-----------\n'; failed.forEach(i=> report+='✗ '+i.text+'\n'); report+='\n'; } const critFailed = failed.filter(i=>i.critical); if(critFailed.length){ report+='CRITICAL FAILURES\n-----------------\n'; critFailed.forEach(i=> report+='⚠ '+i.text+'\n'); report+='\n'; } const notesSummary=$('#summary_notes').value.trim(); const notesSafety=$('#safety_notes').value.trim(); const notesFollow=$('#followup_notes').value.trim(); if(notesSummary){ report+='SYNTHESIS NOTES\n---------------\n'+notesSummary+'\n\n'; } if(notesSafety){ report+='SAFETY / RISK NOTES\n-------------------\n'+notesSafety+'\n\n'; } if(notesFollow){ report+='PLANNED INTERVENTIONS\n---------------------\n'+notesFollow+'\n\n'; } report+='Generated: '+ new Date().toLocaleString() +'\n'; const blob=new Blob([report],{type:'text/plain'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=`Week5_PhysicalAssessment_${sName.replace(/\s+/g,'_')}_${date}.txt`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url); }
+
+        function sendProgressUpdate(){ if(!socket||!socket.connected) return; const score=getScore(); socket.emit('evaluation-update',{ score, items: collectItems(), timestamp: new Date().toISOString(), courseWeekId:5, scenarioTitle:'Week 5 - Physical Assessment' }); }
+
+        async function submitEvaluation(force=false){
+            const score=getScore();
+            if(!socket||!socket.connected){ const retry=confirm('Not connected. Attempt reconnect before submit?'); if(retry){ await attemptReconnection(); setTimeout(()=> submitEvaluation(force),1500); return; } return; }
+            // Duplicate evaluation check (align with Week1/Week2 pattern)
+            if(!force){
+                try {
+                    const resp=await fetch(`${API_BASE}/evaluations/check-duplicate`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({studentName, courseWeekId:5})});
+                    if(resp.ok){ const data=await resp.json(); if(data.duplicate){ if(!confirm(`An evaluation already exists (Score ${data.existingEvaluation.score}%). Overwrite?`)) return; return submitEvaluation(true); } }
+                } catch(err){ console.warn('Duplicate check failed', err); }
+            }
+            socket?.emit('evaluation-complete',{ courseWeekId:5, courseName:'Week 5 - Physical Assessment', score, items:collectItems(), notes:{ summary:$('#summary_notes').value, safety:$('#safety_notes').value, follow:$('#followup_notes').value }, evaluatorName: $('#evaluatorName').value, scenarioTime: $('#scenarioTime').value, startTime: evaluationStartTime, endTime:new Date().toISOString(), overwrite:force });
+            localStorage.removeItem('week5_assessment_state');
+            alert(`Assessment submitted! Score: ${score.pct}% (${score.passed}/${score.total})`);
+        }
+
+        // Guided Completion System
+        let guidedQueue = []; let guidedIndex = 0; let guidedActive = false; let pendingFinalSubmit = false;
+
+        function collectIncompleteGuided(){ return $$('.checklist-item').filter(ci=>{ const pass=ci.querySelector('input.checkbox.pass'); const fail=ci.querySelector('input.checkbox.fail'); return pass && fail && !pass.checked && !fail.checked; }); }
+
+        function guardedSubmit(){ const incomplete = collectIncompleteGuided(); if(incomplete.length){ guidedQueue = incomplete; guidedIndex = 0; pendingFinalSubmit = true; startGuidedMode(); return; } submitEvaluation(); }
+
+        function startGuidedMode(){ if(!guidedQueue.length){ alert('All items are completed.'); return; } guidedActive = true; showGuidedToast(); focusCurrentGuided(); }
+
+        function focusCurrentGuided(){ $$('.incomplete-focus').forEach(el=> el.classList.remove('incomplete-focus')); const item = guidedQueue[guidedIndex]; if(!item) return; const section = item.closest('.section'); if(section && section.classList.contains('collapsed')){ section.classList.remove('collapsed'); const header = section.querySelector('.section-header'); header?.setAttribute('aria-expanded','true'); } item.classList.add('incomplete-focus'); item.scrollIntoView({behavior:'smooth', block:'center'}); }
+
+        function showGuidedToast(){ const root = $('#guidedToastRoot'); if(!guidedActive){ root.innerHTML=''; return; } const total = guidedQueue.length; const current = guidedIndex+1; const item = guidedQueue[guidedIndex]; if(!item){ completeGuided(); return; } const text = item.querySelector('.item-text')?.textContent.trim()||'Item'; const remaining = collectIncompleteGuided().length; root.innerHTML = `<div class="guided-toast" role="dialog" aria-label="Guided Completion">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">
+                <div class="guided-title">Guided Completion (${current}/${total})</div>
+                <button class="guided-btn cancel" style="flex:0 0 auto; padding:6px 10px; font-size:.7rem;" onclick="cancelGuidedMode()">✕</button>
+            </div>
+            <div style="font-size:.8rem; opacity:.75;">Select PASS or FAIL for each remaining item. (${remaining} remaining)</div>
+            <div style="background:#334155; padding:12px 14px; border-radius:10px; font-size:.85rem; line-height:1.35;">${text}</div>
+            <div class="guided-actions">
+                <button type="button" class="guided-btn pass" onclick="markGuided(true)">✓ Pass</button>
+                <button type="button" class="guided-btn fail" onclick="markGuided(false)">✗ Fail</button>
+                <button type="button" class="guided-btn skip" onclick="skipGuided()">Skip</button>
+                <button type="button" class="guided-btn complete" style="display:${remaining===1?'flex':'none'}" onclick="completeGuided()">Complete</button>
+            </div>
+        </div>`; }
+
+        function markGuided(passed){ const item = guidedQueue[guidedIndex]; if(!item) return; const key = item.querySelector('input.checkbox.pass')?.getAttribute('data-key'); if(!key) return; const pass = item.querySelector(`input.checkbox.pass[data-key="${key}"]`); const fail = item.querySelector(`input.checkbox.fail[data-key="${key}"]`); if(passed){ pass.checked=true; fail.checked=false; item.classList.add('checked'); item.classList.remove('failed'); } else { fail.checked=true; pass.checked=false; item.classList.add('failed'); item.classList.remove('checked'); } updateCounts(); advanceGuided(); }
+
+        function advanceGuided(){ let moved=false; for(let i=guidedIndex+1;i<guidedQueue.length;i++){ const ci=guidedQueue[i]; const pass=ci.querySelector('input.checkbox.pass'); const fail=ci.querySelector('input.checkbox.fail'); if(pass && fail && !pass.checked && !fail.checked){ guidedIndex=i; moved=true; break; } }
+            if(!moved){ for(let i=0;i<guidedQueue.length;i++){ const ci=guidedQueue[i]; const pass=ci.querySelector('input.checkbox.pass'); const fail=ci.querySelector('input.checkbox.fail'); if(pass && fail && !pass.checked && !fail.checked){ guidedIndex=i; moved=true; break; } } }
+            if(!moved){ completeGuided(); return; } showGuidedToast(); focusCurrentGuided(); }
+
+        function skipGuided(){ advanceGuided(); }
+        function cancelGuidedMode(){ guidedActive=false; guidedQueue=[]; guidedIndex=0; pendingFinalSubmit=false; $('#guidedToastRoot').innerHTML=''; $$('.incomplete-focus').forEach(el=> el.classList.remove('incomplete-focus')); }
+        function completeGuided(){ const remaining = collectIncompleteGuided(); if(remaining.length){ const confirmSkip = confirm('Some items are still incomplete. Submit anyway?'); if(!confirmSkip){ guidedQueue = remaining; guidedIndex = 0; startGuidedMode(); return; } }
+            $('#guidedToastRoot').innerHTML=''; $$('.incomplete-focus').forEach(el=> el.classList.remove('incomplete-focus')); guidedActive=false; if(pendingFinalSubmit){ pendingFinalSubmit=false; submitEvaluation(); } }
+
+        window.cancelGuidedMode = cancelGuidedMode; window.markGuided = markGuided; window.skipGuided = skipGuided; window.completeGuided = completeGuided; window.guardedSubmit = guardedSubmit;
+
+        document.getElementById('downloadReport').addEventListener('click', generateReport);
+        document.getElementById('resetForm').addEventListener('click', ()=>{ if(!confirm('Reset entire form?')) return; localStorage.removeItem('week5_assessment_state'); $$('.checklist-item').forEach(i=>{ i.classList.remove('checked','failed'); i.querySelectorAll('input[type="checkbox"]').forEach(c=> c.checked=false); }); ['summary_notes','safety_notes','followup_notes'].forEach(id=>{ const el=$('#'+id); if(el) el.value=''; }); updateCounts(); });
+    document.getElementById('submitEvaluation').addEventListener('click', e=>{ e.preventDefault(); guardedSubmit(); });
+        document.getElementById('expandAll').addEventListener('click', ()=> $$('.section').forEach(s=>{ s.classList.remove('collapsed'); $('.section-header', s)?.setAttribute('aria-expanded','true'); }));
+        document.getElementById('collapseAll').addEventListener('click', ()=> $$('.section').forEach(s=>{ s.classList.add('collapsed'); $('.section-header', s)?.setAttribute('aria-expanded','false'); }));
+        $$('input, textarea').forEach(el=> el.addEventListener('input', ()=> saveState()));
+
+        document.addEventListener('DOMContentLoaded', ()=>{ const today=new Date().toISOString().slice(0,10); if(!$('#evaluationDate').value) $('#evaluationDate').value=today; loadState(); lockStudentName(); updateCounts(); });
+
+        // --- Switch Student / Logout Feature (Week 5) ---
+        function switchStudent(){
+            if(!confirm('Switch student? This will clear current progress.')) return;
+            try{ if(socket) socket.disconnect(); }catch(e){}
+            localStorage.removeItem('studentSession');
+            localStorage.removeItem('studentName');
+            localStorage.removeItem('week5_assessment_state');
+            sessionId=null; studentName=null; evaluationStartTime=null;
+            $$('.checklist-item').forEach(ci=>{ ci.classList.remove('checked','failed'); ci.querySelectorAll('input[type="checkbox"]').forEach(c=> c.checked=false); });
+            ['evaluatorName','summary_notes','safety_notes','followup_notes'].forEach(id=>{ const el=$('#'+id); if(el) el.value=''; });
+            showLoginModal();
+            showSuccess('Student session cleared');
+        }
+        document.addEventListener('DOMContentLoaded',()=>{ const btn=document.getElementById('switchStudent'); if(btn) btn.addEventListener('click',switchStudent); });
+    </script>
+</body>
+</html>

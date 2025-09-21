@@ -1,0 +1,26 @@
+{
+  "watch": [
+    ".",
+    "../client"
+  ],
+  "ext": "js,json,html,css",
+  "ignore": [
+    "node_modules/",
+    "logs/",
+    "*.log",
+    "/proc/**",
+    "/sys/**",
+    "/dev/**"
+  ],
+  "legacyWatch": true,
+  "watchOptions": {
+    "useFsEvents": false,
+    "interval": 500
+  },
+  "delay": 500,
+  "env": {
+    "NODE_ENV": "development"
+  },
+  "verbose": true,
+  "restartable": "rs"
+}

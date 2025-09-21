@@ -1,0 +1,20 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 14
+    },
+    "auditLog": "/app/logs/.3be1e8e400f6c65e181301916de518866c0c0c7b-audit.json",
+    "files": [
+        {
+            "date": 1757115498215,
+            "name": "/app/logs/n10l-app-2025-09-05.log",
+            "hash": "c054f085470211faccaa8bf391387ee57084d30c62116bbed9fda7b467e7ba24"
+        },
+        {
+            "date": 1757116824812,
+            "name": "/app/logs/n10l-app-2025-09-06.log",
+            "hash": "495268365a29b9ef009fdbde60040e68778454f022a31755434e4f3bed822ee7"
+        }
+    ],
+    "hashType": "sha256"
+}

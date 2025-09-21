@@ -1,0 +1,215 @@
+
+Nursing Shift 7am -7:30pm
+Scenario Time -->0800 …….Breakfast will arrive at -->0830
+
+S = SITUATION:  
+     	Admission Report:
+       Shannon Shaw is a 47-year-old female admitted this morning with a diagnosis of community acquired pneumonia, productive cough and is expectorating thick yellow green sputum.
+       
+	Dx: Pneumonia (PNA)
+
+B = Background:
+	PMH:  NIDDM,CKD,HLD
+	
+She lives with her husband, son (age 24), daughter (age 22), and 2 grandchildren (ages 2 & 3). Shannon provides daycare for her grandchildren and three other pre-school children who live in the neighborhood.’
+
+She has been having weakness and sob for one week. 
+
+Current medication:  Metformin, 500 mg twice a day; Zocor (Simvastatin) 20 mg
+Daily.
+
+NKA
+	
+A = ASSESSMENT:
+	Visible clinical signs:
+AAOx3, febrile, diaphoretic, short of breath (SOB), nasal flaring, coughing thick yellowish green sputum.
+
+       Physicians Orders:
+		O2 @ 2L/nc for O2 Sat < 95%
+		Vital Signs every 8 hours
+		FSBS AC & HS
+		 
+       Current info/labs:
+		
+                     	Heart rate: 97 bpm
+ 		Respiration Rate: 26/min
+       Blood Pressure: 154/90
+       O2 sats on room air: 89%
+       Temperature: 40 celsius (101.2F)
+       Blood Glucose: 288 mg/dL
+       Weight: 200
+       Height: 5’4
+       Covid PCR negative
+
+R = Recommendations, review, requests:
+What do you need to tell the nurse on the next shift that will be caring for your client????
+
+
+CRITICAL ELEMENTSCommentsStandard Protocol - Beginningo Verifies physician’s orders (must review orders on chart at bedside)
+o Gathers own equipment/supplies 
+o Performs hand hygiene 	Standard Protocol - Duringo Identifies client   (Must check ID bracelet and ask the client state name and DOB)	
+o Introduces self (Talk to the actor) 		
+o Explains what plans to do (Talk to the actor)
+o *Identifies teaching needed and describes what the client can expect      
+o *Assess client to determine if the intervention is still appropriate 
+o Adjust the bed to appropriate height and lower nearest side rail 
+o Provides adequate lighting (Turn on overhead lights)
+o Provides privacy for client   (Pull actual curtain – if in the way may put back)
+Priority
+o Assesses oxygen saturation correctly using monitor by placing on fingertip with sensor anterior and posterior  
+o States expected O2sat would be 95-100% 
+o Places O2 on client per order (Turn on O2 – ball sits on line) 
+o Put on under chin with nasal cannula in the correct position	
+o Vital signs
+Temperature	- 
+o Assesses oral temperature correctly (electronic) by using blue tip  
+o Uses probe cover  
+o Waits for machine to beep – if it is abnormally slow but student did correctly may stop before beep.
+o Discards probe properly – some do not pop off  - (ok to remove with hands if necessary as long as touches only top that was not in contact with mouth)  
+
+Blood Pressure - listening on dual stethoscope 		
+o Makes an assessment of client’s baseline blood pressure prior to evaluation (must ask or state would check record)    
+o Applies BP cuff correctly 
+o Correctly places stethoscope on medial antecubital space 
+o Pumps BP cuff up 20-30mm/Hg above stated or documented  BP 
+o Releases pressure at appropriate speed – not to fast or too slow 
+o Obtains accurate BP within 4mm/Hg diastolic & systolic, listening on dual stethoscope   		
+
+
+
+Radial Pulse –taking radial pulse on other arm simultaneously (student will time and must communicate start and stop. Counting starts at 1 for radial pulse)
+o Assesses  radial pulse for at least 30sec  
+o States regular/irregular correctly  
+o Stated rate and must be within 2-4/bpm             	         
+
+
+Apical Pulse - tester listening on dual stethoscope with student (student will time and must communicate start and stop – Counting starts at zero for apical pulse check)
+o Assesses apical pulse at 5th intercostal, midclavicular line left must be under shirt- stethoscope to skin 
+o Counted for one  full minute     
+o States regular/irregular correctly    
+o Stated rate and must be within 2-4/bpm                                	     
+
+Respiratory Rate = inhale/exhale = 1    –assessing with student (student will time and must communicate for start and stop) 
+o Assessed respiratory rate for at least 30 seconds       
+o Results need to be within 2-3 respirations/minute of the evaluator.                
+
+Pain Assessment - 
+o Questions client about pain status (Give a pain amount to use for this assessment) 
+o Teaches pain scale 0-10 correctly to actor (0 = no pain… 10 = worst pain ever)
+o Verbalizes pain assessment using – PQRSTU 
+o P  =  (what) Provokes  
+o Q =  Quality (sharp, dull,stabbing,burning,,crushing,throbbing,)  
+o R =  Radiation (does it go anywhere)  
+o S =  Severity (pain scale – 0=10)  
+o T =  Time  (when does it usually occur)   
+U =  You  (how does it affect your life)
+Blood Glucose Monitoring
+
+o Check care provider’s orders for time and frequency of measurement
+o Gather your supplies, glucometer, test strip, lancet, cotton ball or 2x2 gauze, alcohol swab, documentation form, gloves bleach wipe, 
+o Use two patient identifiers to confirm the correct client
+o Explain to the client that you are going to check his blood sugar and explain that you will be using a glucometer
+o Perform hand hygiene and don gloves
+o Inspect and select a site, for bruising and sensitivity. Place the hand in a dependent position. (May ask the patient which site he was last pricked to check his blood sugar
+
+o Turn on the glucometer and insert the testing strip according to the manufacturer’s instructions. Confirm the code on the test strip matches the code on the glucometer’s screen.
+o Clean the site chosen to perform the finger stick with an alcohol swab and allow to dry.
+o Prepare the lancet, place it firmly against selected site and depress trigger.
+o Wipe away the first drop of blood and place the second drop of blood against the receiving area of the test strip
+o Document the result, time, date, client and room number
+o Apply a clean cotton ball or gauze 2x2 to the client’s puncture site and confirm that bleeding has stopped
+o Dispose of lancet, test strip and gloves in appropriate receptacle.
+o Perform hand hygiene
+
+AssessmentsHead, Face, Mouth /Mucous membranes:
+o Head: symmetry, masses, tenderness
+o Hair: Color, thick/fine, straight/curly, distribution
+o Face: symmetry
+o Teeth: Present/missing, condition, color, plaque, dentures/bridges, breath odor
+Mucous membranes/gums: Moist/dry/cracked, pink/pale
+
+Skin, Hair, Nails:
+o Skin tone/variations:  (pink, pale, ruddy, light/dark tan/brown, olive tones, jaundice, cyanosis, hypo/hyperpigmented areas)
+o Temperature/character: Warm/cool, dry/clammy
+o Texture: Smooth firm with even surfaces
+o Thickness: Epidermis uniform w/ incr. thickness to soles/palms
+o Turgor: Tenting x # of sec or none	
+o Vascularity: Bruising/tattoos
+o Edema: Name location and grade from None - 4+
+o Lesions/Moles/Scars: Color, elevation, pattern or shape, size in cm, location/distribution, exudates, and type of lesion noted ie macular, papular, vesicular, pustular
+o Presence of pressure signs: redness, loss of superficial skin layers	
+Nails: Thin/thick, pink/yellow, smooth/uneven, 160 degree or less contour, cap refill immediate or # of sec
+General Appearance:
+o State of Nutrition: Physical Appearance (No signs of malnutrition)Thin, frail or obese
+o Comfort Level: No distress
+o Facial features/Body Structure:   Describe pt’s posture. Sitting in W/C or standing or laying in bed; Symmetrical features
+Neurological system:
+o Level of orientation: Alert & oriented to person, place, time
+o Alert & oriented to number of variables = A&Ox1, x2, or x3
+o Memory Intact: short or long term
+o Follows directions with active motor movement
+o Pupillary reaction, ocular movement ,
+o PERRLA (pupils equally round, reactive to light/accommodation) 
+o Glasgow Coma Scale
+
+Psychological:
+o Facial Expression: Eye contact, smiling, crying
+o Mood/Affect: Cooperative, appropriate expression
+o Speech: Articulation is clear/understandable
+o Interaction: Developmentally appropriate to age
+o Personal Hygiene: Clean
+Standard Protocol - Endingo Assist client to a position of comfort, organize needed personal items within reach  
+o The client has the call light and knows how to use it 
+o Raise side rails and lower the bed to the lowest position 
+o Dispose of used supplies and equipment properly  
+o Remove and dispose of gloves (Do if appropriate)
+o Perform hand hygiene   - Gel in gel out
+
+
+
+
+
+
+
+
+THE FOUR MAJOR TYPES OF PAIN:
+* Nociceptive Pain: Typically the result of tissue injury. ...
+* Inflammatory Pain: An abnormal inflammation caused by an inappropriate response by the body's immune system. ...
+* Neuropathic Pain: Pain caused by nerve irritation. ...
+* Functional Pain: Pain without obvious origin, but can cause pain.
+
+
+
+PERRLA
+https://www.youtube.com/watch?v=FfX6bLxq7Co
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The Glasgow Coma Scale (GCS) was developed in 1974 by Graham Teasdale and Bryan Jennett, two professors of neurosurgery at the University of Glasgow in Scotland. Their goal was to create a simple and reliable way to assess the level of consciousness in patients with head injuries or neurological conditions.
+The GCS measures three key aspects of a patient's response:
+1. Eye-opening (E)
+2. Verbal response (V)
+3. Motor response (M)
+Each category is scored independently, and the scores are added together to give a total score ranging from 3 (deep unconsciousness) to 15 (fully alert). The scale is widely used in emergency, intensive care, and trauma settings to assess the severity of brain injuries and monitor a patient's condition over time.
+The GCS has since become a global standard in neurological assessment, particularly for assessing traumatic brain injuries (TBIs). It has been praised for its simplicity and consistency, though there have been updates and refinements to its use over time, especially regarding intubated or pediatric patients.
+
+
+NURS 10L_Week 2
+Vital Signs           Student Name________________________________             Date _________
+

@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>N10L Course Selection</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .auth-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .login-btn, .dashboard-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            margin: 0 10px;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s;
+        }
+
+        .login-btn:hover, .dashboard-btn:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+        }
+
+        .dashboard-btn {
+            background: #27ae60;
+        }
+
+        .dashboard-btn:hover {
+            background: #229954;
+        }
+        
+        .week-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .week-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .week-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+        
+        .week-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+        
+        .week-number {
+            font-size: 3em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .week-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-align: center;
+            color: #333;
+        }
+        
+        .week-description {
+            color: #666;
+            text-align: center;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        
+        .week-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5a67d8;
+        }
+        
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+        
+        .btn-secondary:hover {
+            background: #cbd5e0;
+        }
+        
+        .admin-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+        
+        .admin-section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .admin-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .status-indicator {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+        
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .loading {
+            text-align: center;
+            color: white;
+            font-size: 1.2em;
+            padding: 40px;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        @media (max-width: 768px) {
+            .week-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .week-card {
+                padding: 20px;
+            }
+            
+            .week-number {
+                font-size: 2.5em;
+            }
+            
+            .admin-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏥 NURS 10L Evaluation System</h1>
+            <p>Select a week to begin your nursing skills evaluation</p>
+        </div>
+
+        <div class="auth-section" id="authSection">
+            <h3>🔐 Secure Access</h3>
+            <p>Students: Use your full name + institutional password "fresnostate123" for secure access</p>
+            <p style="font-size: 14px; color: #7f8c8d; margin-bottom: 20px;">This password system prevents unauthorized database access and bot attacks</p>
+            <a href="/dashboard" class="dashboard-btn">📊 Go to Dashboard</a>
+            <button class="login-btn" onclick="showLoginModal()">🔐 Student Login</button>
+        </div>
+        
+        <div id="loading" class="loading">
+            Loading course weeks...
+        </div>
+        
+        <div id="error" class="error" style="display: none;"></div>
+        
+        <div id="adminSection" class="admin-section" style="display: none;">
+            <h2>👨‍⚕️ Instructor Dashboard</h2>
+            <div class="admin-actions">
+                <a href="/admin.html" class="btn btn-primary">Real-Time Monitor</a>
+                <button onclick="viewStatistics()" class="btn btn-secondary">View Statistics</button>
+                <button onclick="exportData()" class="btn btn-secondary">Export Data</button>
+            </div>
+        </div>
+        
+        <div id="weekGrid" class="week-grid" style="display: none;">
+            <!-- Week cards will be populated here -->
+        </div>
+    </div>
+
+    <script>
+        const BASE_PATH = location.pathname.toLowerCase().startsWith('/n10lvoice/') ? '/N10LVoice' : '';
+        const API_BASE = `${BASE_PATH}/api`;
+
+        let currentUser = null;
+        let courses = [];
+
+        // Check if user is logged in
+        const token = localStorage.getItem('studentToken') || localStorage.getItem('adminToken');
+        if (!token) {
+            // Redirect to a login page or show login modal
+            window.location.href = `${BASE_PATH}/PersonalCare.html`;
+        }
+
+        // Load courses on page load
+        document.addEventListener('DOMContentLoaded', loadCourses);
+
+        async function loadCourses() {
+            try {
+                // Verify user authentication
+                const userResponse = await fetch(`${API_BASE}/auth/verify`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (userResponse.ok) {
+                    const userData = await userResponse.json();
+                    currentUser = userData.user;
+                    
+                    if (currentUser.role === 'admin') {
+                        document.getElementById('adminSection').style.display = 'block';
+                    }
+                }
+
+                // Load courses
+                const response = await fetch(`${API_BASE}/courses`);
+                if (!response.ok) {
+                    throw new Error('Failed to load courses');
+                }
+                
+                courses = await response.json();
+                renderCourses();
+                
+            } catch (error) {
+                console.error('Error loading courses:', error);
+                showError('Failed to load course information. Please refresh the page.');
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        function renderCourses() {
+            const weekGrid = document.getElementById('weekGrid');
+            weekGrid.innerHTML = '';
+            
+            courses.forEach(course => {
+                const weekCard = document.createElement('div');
+                weekCard.className = 'week-card';
+                weekCard.innerHTML = `
+                    <div class="status-indicator ${course.active ? 'status-active' : 'status-inactive'}">
+                        ${course.active ? 'Active' : 'Inactive'}
+                    </div>
+                    <div class="week-number">Week ${course.week_number}</div>
+                    <div class="week-title">${course.scenario_title}</div>
+                    <div class="week-description">${course.scenario_description}</div>
+                    <div class="week-actions">
+                        ${course.active ? `
+                            <button onclick="startEvaluation(${course.week_number})" class="btn btn-primary">
+                                Start Evaluation
+                            </button>
+                            ${currentUser && currentUser.role === 'admin' ? `
+                                <button onclick="viewWeekDetails(${course.week_number})" class="btn btn-secondary">
+                                    View Details
+                                </button>
+                            ` : ''}
+                        ` : `
+                            <button class="btn btn-secondary" disabled>
+                                Coming Soon
+                            </button>
+                        `}
+                    </div>
+                `;
+                
+                weekGrid.appendChild(weekCard);
+            });
+            
+            weekGrid.style.display = 'grid';
+        }
+
+        async function startEvaluation(weekNumber) {
+            try {
+                // For students, start a new evaluation session
+                if (!currentUser || currentUser.role === 'student') {
+                    const studentName = currentUser?.username || localStorage.getItem('studentName') || prompt('Enter your name:');
+                    if (!studentName) return;
+
+                    const response = await fetch(`${API_BASE}/evaluations/start`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({
+                            weekNumber: weekNumber,
+                            evaluatorName: 'Self-Assessment'
+                        })
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        // Store session info and redirect to evaluation page
+                        localStorage.setItem('currentSessionId', data.sessionId);
+                        localStorage.setItem('currentWeekNumber', weekNumber);
+                        window.location.href = `${BASE_PATH}/PersonalCare.html?week=${weekNumber}&session=${data.sessionId}`;
+                    } else {
+                        throw new Error('Failed to start evaluation session');
+                    }
+                } else {
+                    // For admins, go to the evaluation page in observation mode
+                    window.location.href = `${BASE_PATH}/PersonalCare.html?week=${weekNumber}&mode=admin`;
+                }
+            } catch (error) {
+                console.error('Error starting evaluation:', error);
+                showError('Failed to start evaluation. Please try again.');
+            }
+        }
+
+        async function viewWeekDetails(weekNumber) {
+            // TODO: Implement week details view
+            alert(`Week ${weekNumber} details - Feature coming soon!`);
+        }
+
+        async function viewStatistics() {
+            try {
+                const response = await fetch(`${API_BASE}/admin/statistics`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const stats = await response.json();
+                    displayStatistics(stats);
+                } else {
+                    throw new Error('Failed to load statistics');
+                }
+            } catch (error) {
+                console.error('Error loading statistics:', error);
+                showError('Failed to load statistics.');
+            }
+        }
+
+        function displayStatistics(stats) {
+            let statsHtml = '<h3>📊 Evaluation Statistics</h3><table style="width: 100%; border-collapse: collapse;">';
+            statsHtml += '<tr style="background: #f8f9fa;"><th style="padding: 10px; border: 1px solid #ddd;">Week</th><th style="padding: 10px; border: 1px solid #ddd;">Total</th><th style="padding: 10px; border: 1px solid #ddd;">Completed</th><th style="padding: 10px; border: 1px solid #ddd;">In Progress</th><th style="padding: 10px; border: 1px solid #ddd;">Avg Score</th></tr>';
+            
+            stats.forEach(stat => {
+                statsHtml += `<tr>
+                    <td style="padding: 10px; border: 1px solid #ddd;">Week ${stat.week_number}</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">${stat.total_evaluations || 0}</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">${stat.completed_evaluations || 0}</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">${stat.in_progress_evaluations || 0}</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">${stat.average_score ? Math.round(stat.average_score) + '%' : 'N/A'}</td>
+                </tr>`;
+            });
+            
+            statsHtml += '</table>';
+            
+            // Create modal to display statistics
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+                background: rgba(0,0,0,0.8); z-index: 1000; 
+                display: flex; justify-content: center; align-items: center;
+            `;
+            
+            modal.innerHTML = `
+                <div style="background: white; padding: 30px; border-radius: 15px; max-width: 800px; width: 90%; max-height: 80%; overflow-y: auto;">
+                    ${statsHtml}
+                    <button onclick="this.closest('.modal').remove()" style="margin-top: 20px; padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer;">Close</button>
+                </div>
+            `;
+            modal.className = 'modal';
+            document.body.appendChild(modal);
+        }
+
+        async function exportData() {
+            // TODO: Implement data export functionality
+            alert('Data export feature coming soon!');
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

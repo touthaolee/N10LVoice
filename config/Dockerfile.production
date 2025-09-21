@@ -1,0 +1,54 @@
+# Production Dockerfile with latest NPM packages
+FROM node:18-alpine AS builder
+
+# Install build dependencies
+RUN apk add --no-cache python3 make g++
+
+WORKDIR /app
+
+# Update npm to latest version
+RUN npm install -g npm@latest
+
+# Copy package files
+COPY server/package*.json ./
+
+# Install dependencies with latest versions
+RUN npm cache clean --force && \
+    npm ci --only=production && \
+    npm update && \
+    npm audit fix --force
+
+# Production stage
+FROM node:18-alpine AS production
+
+# Install curl for health checks
+RUN apk add --no-cache curl
+
+WORKDIR /app
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S node -u 1001
+
+# Copy built dependencies
+COPY --from=builder --chown=node:nodejs /app/node_modules ./node_modules
+
+# Copy application code
+COPY --chown=node:nodejs server/ ./
+COPY --chown=node:nodejs *.html ./public/
+
+# Create logs directory
+RUN mkdir -p logs && chown node:nodejs logs
+
+# Switch to non-root user
+USER node
+
+# Expose port
+EXPOSE 3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD curl -f http://localhost:3000/api/health || exit 1
+
+# Start application
+CMD ["npm", "start"]

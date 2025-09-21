@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  n10voice:
+    build:
+      context: .
+      dockerfile: config/Dockerfile
+    container_name: N10Voice
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      DB_HOST: mysql-va-units
+      DB_PORT: 3306
+      DB_USER: va_service
+      DB_PASSWORD: service_pass_2024
+      DB_NAME: N10L
+      JWT_SECRET: n10l-evaluation-secret-2024-dev
+      LOGS_DIR: /app/logs
+    volumes:
+      # Mount source code for live reload
+      - ./src/server:/app/server:rw
+      - ./src/client:/app/client:rw
+      # Preserve node_modules in container
+      - /app/server/node_modules
+      # Mount logs for persistence
+      - ./logs:/app/logs:rw
+    networks:
+      - va-education
+    working_dir: /app/server
+    command: npm run dev
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=touthao_va-education"
+      - "traefik.http.routers.n10voice.rule=Host(`educationservice.net`) && PathPrefix(`/N10LVoice`)"
+      - "traefik.http.routers.n10voice.entrypoints=websecure"
+      - "traefik.http.routers.n10voice.tls.certresolver=myresolver"
+      - "traefik.http.services.n10voice.loadbalancer.server.port=3000"
+      - "traefik.http.routers.n10voice.middlewares=n10voice-stripprefix"
+      - "traefik.http.middlewares.n10voice-stripprefix.stripprefix.prefixes=/N10LVoice"
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  va-education:
+    external: true
+    name: touthao_va-education

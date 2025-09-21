@@ -1286,7 +1286,7 @@
     </style>
 </head>
 <body>
-    <div id="connectionStatus" class="connection-status disconnected">🔴 Disconnected</div>
+    <div id="connectionStatusBanner" class="connection-status disconnected">🔴 Disconnected</div>
 
     <!-- Login Screen -->
     <div id="loginContainer" class="login-container">
@@ -1361,7 +1361,7 @@
                 <h1 class="page-title" id="pageTitle">Dashboard Overview</h1>
                 <div class="connection-indicator">
                     <div id="connectionDot" class="connection-dot disconnected"></div>
-                    <span id="connectionStatus" class="connection-status disconnected">Connecting...</span>
+                    <span id="connectionStatusText" class="connection-status disconnected">Connecting...</span>
                 </div>
                 <div class="user-menu">
                     <div class="user-avatar" id="userAvatar">A</div>
@@ -1843,7 +1843,9 @@
         // DOM elements
         const loginContainer = document.getElementById('loginContainer');
         const dashboardWrapper = document.getElementById('dashboardWrapper');
-        const connectionStatus = document.getElementById('connectionStatus');
+        const connectionStatusBanner = document.getElementById('connectionStatusBanner');
+        const connectionStatusText = document.getElementById('connectionStatusText');
+        const connectionDot = document.getElementById('connectionDot');
         const pageTitle = document.getElementById('pageTitle');
 
         // Check if already logged in
@@ -2058,10 +2060,12 @@
             });
 
             // Add ping/pong for connection health monitoring
-            socket.on('pong', (data) => {
+            socket.on('admin-pong', (data = {}) => {
                 const pingTime = Date.now() - lastPingTime;
                 console.log(`🏓 Pong received, latency: ${pingTime}ms`);
-                updateConnectionStatus(true, `Connected (${pingTime}ms)`);
+                const displayLatency = typeof data.latency === 'number' ? data.latency : pingTime;
+                updateConnectionStatus(true, `Connected (${displayLatency}ms)`);
+                lastPingTime = null;
             });
 
             // Enhanced error handling for speech events
@@ -2252,7 +2256,7 @@
         function sendConnectionPing() {
             if (socket && socket.connected) {
                 lastPingTime = Date.now();
-                socket.emit('ping', { timestamp: lastPingTime, type: 'health-check' });
+                socket.emit('admin-ping', { timestamp: lastPingTime, type: 'health-check' });
                 
                 // Set timeout to detect ping failures
                 setTimeout(() => {
@@ -2266,19 +2270,24 @@
 
         // Enhanced connection status display
         function updateConnectionStatus(connected, message = '') {
-            const statusElement = document.getElementById('connectionStatus');
-            const statusDot = document.getElementById('connectionDot');
-            
-            if (statusElement && statusDot) {
-                if (connected) {
-                    statusElement.textContent = message || 'Connected';
-                    statusElement.className = 'connection-status connected';
-                    statusDot.className = 'connection-dot connected';
-                } else {
-                    statusElement.textContent = message || 'Disconnected';
-                    statusElement.className = 'connection-status disconnected';
-                    statusDot.className = 'connection-dot disconnected';
-                }
+            const statusText = message || (connected ? 'Connected' : 'Disconnected');
+            const bannerText = `${connected ? '🟢' : '🔴'} ${statusText}`;
+
+            if (connectionStatusBanner) {
+                connectionStatusBanner.textContent = bannerText;
+                connectionStatusBanner.classList.toggle('connected', connected);
+                connectionStatusBanner.classList.toggle('disconnected', !connected);
+            }
+
+            if (connectionStatusText) {
+                connectionStatusText.textContent = statusText;
+                connectionStatusText.classList.toggle('connected', connected);
+                connectionStatusText.classList.toggle('disconnected', !connected);
+            }
+
+            if (connectionDot) {
+                connectionDot.classList.toggle('connected', connected);
+                connectionDot.classList.toggle('disconnected', !connected);
             }
         }
 
@@ -2990,16 +2999,6 @@
         window.deleteStudentProgress = deleteStudentProgress;
 
         // Utility functions
-        function updateConnectionStatus(connected) {
-            if (connected) {
-                connectionStatus.textContent = '🟢 Connected';
-                connectionStatus.className = 'connection-status connected';
-            } else {
-                connectionStatus.textContent = '🔴 Disconnected';
-                connectionStatus.className = 'connection-status disconnected';
-            }
-        }
-
         function showError(message) {
             const errorDiv = document.getElementById('loginError');
             errorDiv.textContent = message;
@@ -3216,12 +3215,19 @@
             const container = document.getElementById('liveStudentGrid');
             if (!container) return;
             let all = Array.from(students.values());
-            
+
+            const hasSessionIdentifier = (student) => {
+                const id = student?.sessionId ?? student?.liveSessionId ?? student?.activeSessionId;
+                if (typeof id === 'number') return id > 0;
+                if (typeof id === 'string') return id.trim().length > 0;
+                return false;
+            };
+
             // Apply filter to hide "No Session" entries if enabled
             if (hideNoSession) {
-                all = all.filter(s => s.sessionId && s.sessionId > 0);
+                all = all.filter(s => hasSessionIdentifier(s));
             }
-            
+
             if (all.length === 0) {
                 const message = hideNoSession ? 
                     'No students with active sessions' : 
@@ -3235,6 +3241,7 @@
             all.sort((a,b)=> (statusOrder[a.status]??9)-(statusOrder[b.status]??9) || a.username.localeCompare(b.username));
 
             const now = Date.now();
+            let activeCount = 0;
             const cards = all.map(s => {
                 const score = s.score || { passed:0, failed:0, total:0, percent:0 };
                 const last = s.lastUpdate ? new Date(s.lastUpdate).getTime() : null;
@@ -3244,13 +3251,9 @@
                     connected: { bg:'#eef2ff', color:'#4338ca', label:'Connected', glow:'rgba(99,102,241,.35)', pc:'#6366f1' },
                     completed: { bg:'#ecfdf5', color:'#065f46', label:'Completed', glow:'rgba(16,185,129,.35)', pc:'#10b981' },
                     disconnected: { bg:'#fef2f2', color:'#b91c1c', label:'Disconnected', glow:'rgba(239,68,68,.35)', pc:'#ef4444' },
-                    'no-session': { bg:'#f8fafc', color:'#64748b', label:'No Session', glow:'rgba(100,116,139,.25)', pc:'#94a3b8' }
+                    'no-session': { bg:'#f8fafc', color:'#64748b', label:'Awaiting Start', glow:'rgba(100,116,139,.25)', pc:'#94a3b8' },
+                    awaiting: { bg:'#e0f2fe', color:'#0c4a6e', label:'Awaiting Start', glow:'rgba(14,116,144,.25)', pc:'#38bdf8' }
                 };
-                
-                // Override status if no sessionId exists
-                const actualStatus = (!s.sessionId || s.sessionId <= 0) ? 'no-session' : s.status;
-                const st = statusMap[actualStatus] || { bg:'#f1f5f9', color:'#475569', label:actualStatus||'Unknown', glow:'rgba(100,116,139,.25)', pc:'#64748b' };
-                const completionPct = score.total ? Math.round(((score.passed+score.failed)/score.total)*100) : 0;
                 
                 // Get live speech data for this student
                 const speechData = getStudentSpeechData(s.username);
@@ -3258,6 +3261,30 @@
                 const fullSpeechTranscript = speechData ? (speechData.transcript || '') : '';
                 const speechInterim = speechData ? (speechData.interim || '') : '';
                 const hasActiveSpeech = speechStatus === 'recording';
+                
+                const sessionPresent = hasSessionIdentifier(s);
+                let actualStatus = (s.status && statusMap[s.status]) ? s.status : 'connected';
+                if (!sessionPresent && (actualStatus === 'connected' || actualStatus === 'evaluating' || actualStatus === 'no-session')) {
+                    actualStatus = hasActiveSpeech ? 'connected' : 'awaiting';
+                } else if (!actualStatus) {
+                    actualStatus = sessionPresent ? 'connected' : 'awaiting';
+                }
+
+                const isActivelyMonitoring = actualStatus === 'connected' || actualStatus === 'evaluating';
+                if (isActivelyMonitoring || actualStatus === 'awaiting') {
+                    activeCount++;
+                }
+
+                const st = statusMap[actualStatus] || { bg:'#f1f5f9', color:'#475569', label:actualStatus||'Unknown', glow:'rgba(100,116,139,.25)', pc:'#64748b' };
+                const statusLabel = isActivelyMonitoring
+                    ? (actualStatus === 'evaluating' ? 'Evaluating' : (hasActiveSpeech ? 'Speaking' : 'Connected'))
+                    : st.label;
+                const statusColor = isActivelyMonitoring
+                    ? (hasActiveSpeech ? '#2563eb' : '#4338ca')
+                    : st.color;
+                const completedCount = (score.passed || 0) + (score.failed || 0);
+                const completionPct = score.total ? Math.round((completedCount/score.total)*100) : 0;
+                const remainingCount = score.total ? Math.max(score.total - completedCount, 0) : null;
                 
                 // Get only the most recent speech content for display (last 40 words)
                 const recentSpeechContent = getRecentSpeechContent(fullSpeechTranscript, 40);
@@ -3290,6 +3317,13 @@
                     </div>
                 `;
                 
+                const hasDetails = typeof s.sessionId === 'number' && s.sessionId > 0;
+                const detailLabel = hasDetails
+                    ? 'View Details'
+                    : (isActivelyMonitoring
+                        ? (hasActiveSpeech ? 'Streaming' : 'Monitoring')
+                        : ((actualStatus === 'awaiting' || actualStatus === 'no-session') ? 'Awaiting Start' : 'No Session'));
+
                 return `<div class="live-card ${hasActiveSpeech ? 'speech-active' : ''}" style="--pc-color:${st.pc}; box-shadow:0 6px 18px -4px ${st.glow},0 1px 3px rgba(0,0,0,.08);">
                     ${scenarioBadge}
                     <div class="lc-progress">
@@ -3299,18 +3333,17 @@
                     </div>
                     <div class="lc-header">
                         <div class="lc-name">${s.username}</div>
-                        <span class="lc-status" style="background:${st.bg}; color:${st.color};">${st.label}</span>
+                        <span class="lc-status" style="background:${st.bg}; color:${statusColor};">${statusLabel}</span>
                     </div>
                     <div class="lc-metrics">
-                        <div class="metric-box"><div class="metric-label">PASSED</div><div class="metric-value" style="color:#16a34a;">${score.passed}</div></div>
-                        <div class="metric-box"><div class="metric-label">FAILED</div><div class="metric-value" style="color:#dc2626;">${score.failed}</div></div>
-                        <div class="metric-box"><div class="metric-label">TOTAL ITEMS</div><div class="metric-value small">${score.total}</div></div>
-                        <div class="metric-box"><div class="metric-label">PROGRESS</div><div class="metric-value small">${completionPct}%</div></div>
+                        <div class="metric-box"><div class="metric-label">COMPLETION</div><div class="metric-value" style="color:#2563eb;">${completionPct}%</div></div>
+                        <div class="metric-box"><div class="metric-label">ITEMS REVIEWED</div><div class="metric-value small">${score.total ? `${completedCount}/${score.total}` : completedCount}</div></div>
+                        <div class="metric-box"><div class="metric-label">REMAINING</div><div class="metric-value small">${remainingCount !== null ? remainingCount : '—'}</div></div>
                         <div class="metric-box"><div class="metric-label">LAST UPDATE</div><div class="metric-value small">${secondsAgo}s</div></div>
                     </div>
                     ${liveTranscriptSection}
                     <div class="lc-footer">
-                        <button class="detail-btn" onclick="viewEvaluationDetails(${s.sessionId||0})" ${s.sessionId?'' : 'disabled'}>${s.sessionId?'View Details':'No Session'}</button>
+                        <button class="detail-btn" ${hasDetails ? `onclick="viewEvaluationDetails(${s.sessionId})"` : 'disabled'}>${detailLabel}</button>
                         ${actualStatus === 'no-session' || actualStatus === 'disconnected' || actualStatus === 'completed' ? 
                             `<button class="close-card-btn" onclick="closeStudentCard('${s.username}')" title="Remove this card from dashboard">
                                 <i class="fas fa-times"></i>
@@ -3319,8 +3352,7 @@
                 </div>`;
             }).join('');
             container.innerHTML = cards;
-            const active = all.filter(s => s.status==='evaluating' || s.status==='connected').length;
-            const countText = hideNoSession ? `${active} Active (Filtered)` : `${active} Active`;
+            const countText = hideNoSession ? `${activeCount} Active (Filtered)` : `${activeCount} Active`;
             document.getElementById('liveStudentCount').textContent = countText;
                         // Aggregate unique scenario titles
                         const scenarioSet = new Set(all.filter(s=>s.scenarioTitle).map(s=>s.scenarioTitle));

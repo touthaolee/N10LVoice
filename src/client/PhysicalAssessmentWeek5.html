@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="theme-color" content="#667eea" />
     <title>NURS 10L - Week 5 Physical Assessment</title>
-    <script src="/N10L/socket.io/socket.io.js"></script>
+    <script src="socket.io/socket.io.js"></script>
     <style>
         :root {
             --bg: #f5f7fa;
@@ -106,8 +106,9 @@
         <div class="toolbar">
             <button type="button" class="btn btn-secondary" id="expandAll">Expand all</button>
             <button type="button" class="btn btn-secondary" id="collapseAll">Collapse all</button>
-            <button type="button" class="btn btn-secondary" id="resetForm">Reset form</button>
-            <button type="button" class="btn btn-secondary" id="switchStudent">Switch / Logout</button>
+      <button type="button" class="btn btn-secondary" id="resetForm">Reset form</button>
+      <button type="button" class="btn btn-secondary" id="recallEvaluationBtn" style="display: none;">Recall Last Submission</button>
+      <button type="button" class="btn btn-secondary" id="switchStudent">Switch / Logout</button>
             <button type="button" class="btn btn-primary" id="downloadReport">Generate report</button>
             <button type="button" class="btn btn-primary" id="submitEvaluation" style="background: var(--ok); margin-left:10px;">Submit Assessment</button>
         </div>
@@ -287,8 +288,8 @@
                 </div>
                 <div style="margin-bottom:22px;">
                     <label for="loginPassword" style="display:block; font-weight:600; margin-bottom:6px;">Password</label>
-                    <input id="loginPassword" type="password" required placeholder="Institution password" style="width:100%; padding:12px; border:2px solid var(--border); border-radius:8px; font-size:16px;" />
-                    <small style="color:var(--muted); display:block; margin-top:6px; font-size:.7rem;">Use your standard student password.</small>
+                    <input id="loginPassword" type="password" placeholder="Institution password" style="width:100%; padding:12px; border:2px solid var(--border); border-radius:8px; font-size:16px;" />
+                    <small style="color:var(--muted); display:block; margin-top:6px; font-size:.7rem;">Students should enter <strong>fresnostate123</strong> unless instructed otherwise.</small>
                 </div>
                 <button type="submit" style="width:100%; padding:14px; background:var(--primary); color:#fff; border:none; border-radius:10px; font-size:16px; font-weight:600; cursor:pointer;">Start Assessment</button>
             </form>
@@ -302,6 +303,135 @@
         const BASE_PATH = location.pathname.toLowerCase().startsWith('/n10lvoice/') ? '/N10LVoice' : '';
         const API_BASE = `${BASE_PATH}/api`;
         const SOCKET_PATH = `${BASE_PATH}/socket.io`;
+
+        const defaultScenarioField = document.getElementById('scenarioTime');
+        const defaultEvaluationDateField = document.getElementById('evaluationDate');
+        const DEFAULT_SCENARIO_TIME = defaultScenarioField ? defaultScenarioField.value : '0900';
+        const DEFAULT_EVALUATION_DATE = defaultEvaluationDateField ? defaultEvaluationDateField.value : new Date().toISOString().split('T')[0];
+
+        const LAST_EVALUATION_PREFIX = 'physicalWeek5LastEvaluation_';
+
+        function getLastEvaluationStorageKey(){
+            if(!studentName) return null;
+            return `${LAST_EVALUATION_PREFIX}${studentName}`;
+        }
+
+        function saveLastEvaluationSnapshot(snapshot){
+            try {
+                const key = getLastEvaluationStorageKey();
+                if(!key) return;
+                localStorage.setItem(key, JSON.stringify(snapshot));
+            } catch (error) {
+                console.error('Failed to save last evaluation snapshot:', error);
+            }
+        }
+
+        function loadLastEvaluationSnapshot(){
+            try {
+                const key = getLastEvaluationStorageKey();
+                if(!key) return null;
+                const raw = localStorage.getItem(key);
+                if(!raw) return null;
+                return JSON.parse(raw);
+            } catch (error) {
+                console.warn('Failed to load last evaluation snapshot:', error);
+                return null;
+            }
+        }
+
+        function updateRecallButtonVisibility(){
+            const btn = document.getElementById('recallEvaluationBtn');
+            if(!btn) return;
+            const key = getLastEvaluationStorageKey();
+            const hasSnapshot = key && localStorage.getItem(key);
+            btn.style.display = hasSnapshot ? 'inline-flex' : 'none';
+            btn.disabled = !hasSnapshot;
+            if(hasSnapshot){
+                btn.setAttribute('aria-label','Recall your most recent submission for review');
+            }
+        }
+
+        function resetAssessmentState({ preserveStudentInfo=true, silent=false } = {}){
+            $$('.checklist-item').forEach(ci=>{
+                ci.classList.remove('checked','failed');
+                ci.querySelectorAll('input[type="checkbox"]').forEach(c=> c.checked=false);
+            });
+
+            const noteFields = ['summary_notes','safety_notes','followup_notes'];
+            noteFields.forEach(id=>{ const el = document.getElementById(id); if(el) el.value=''; });
+
+            const evaluatorField = document.getElementById('evaluatorName');
+            if(evaluatorField) evaluatorField.value='';
+
+            const scenarioField = document.getElementById('scenarioTime');
+            if(scenarioField) scenarioField.value = DEFAULT_SCENARIO_TIME;
+
+            const evalDateField = document.getElementById('evaluationDate');
+            if(evalDateField) evalDateField.value = DEFAULT_EVALUATION_DATE;
+
+            localStorage.removeItem('week5_assessment_state');
+
+            updateCounts();
+
+            if(!preserveStudentInfo){
+                const studentField = document.getElementById('studentName');
+                if(studentField) studentField.value='';
+            }
+
+            if(!silent){
+                showSuccess('Assessment reset. Ready for a new attempt.');
+            }
+        }
+
+        function applyEvaluationSnapshot(snapshot){
+            if(!snapshot || !Array.isArray(snapshot.items)){
+                showError('No saved submission found to recall.');
+                updateRecallButtonVisibility();
+                return;
+            }
+
+            resetAssessmentState({ preserveStudentInfo:true, silent:true });
+
+            snapshot.items.forEach(entry=>{
+                if(!entry || !entry.key) return;
+                const pass = document.querySelector(`input.checkbox.pass[data-key="${entry.key}"]`);
+                const fail = document.querySelector(`input.checkbox.fail[data-key="${entry.key}"]`);
+                if(!pass || !fail) return;
+                pass.checked = !!entry.passed;
+                fail.checked = !!entry.failed;
+                const ci = pass.closest('.checklist-item');
+                if(!ci) return;
+                ci.classList.toggle('checked', !!entry.passed);
+                ci.classList.toggle('failed', !!entry.failed);
+            });
+
+            const notes = snapshot.notes || {};
+            const noteFieldMap = {
+                evaluatorName: notes.evaluatorName || '',
+                scenarioTime: notes.scenarioTime || DEFAULT_SCENARIO_TIME,
+                evaluationDate: notes.evaluationDate || DEFAULT_EVALUATION_DATE,
+                summary_notes: notes.summary || '',
+                safety_notes: notes.safety || '',
+                followup_notes: notes.follow || ''
+            };
+            Object.entries(noteFieldMap).forEach(([id,val])=>{ const field=document.getElementById(id); if(field) field.value=val; });
+
+            updateCounts();
+            showSuccess('Last submission recalled. You may review or make adjustments before resubmitting.');
+        }
+
+        function recallLastEvaluation(){
+            const snapshot = loadLastEvaluationSnapshot();
+            if(!snapshot){
+                showError('No saved submission found to recall.');
+                updateRecallButtonVisibility();
+                return;
+            }
+            applyEvaluationSnapshot(snapshot);
+        }
+
+        window.resetAssessmentState = resetAssessmentState;
+        window.recallLastEvaluation = recallLastEvaluation;
         let socket = null; let sessionId = localStorage.getItem('studentSession'); let studentName = localStorage.getItem('studentName');
         let evaluationStartTime = null; let reconnectAttempts=0; const maxReconnectAttempts=5; let reconnectInterval=null; let isManualDisconnect=false;
 
@@ -313,9 +443,9 @@
         async function checkExistingSession(){
             if(sessionId && studentName){
                 try { const resp = await fetch(`${API_BASE}/auth/validate-session`, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({sessionId})});
-                    if(resp.ok){ connectSocket(); setTimeout(loadState,800); return; }
+                    if(resp.ok){ connectSocket(); setTimeout(loadState,800); updateRecallButtonVisibility(); return; }
                 } catch(e){}
-                localStorage.removeItem('studentSession'); localStorage.removeItem('studentName'); sessionId=null; studentName=null;
+                localStorage.removeItem('studentSession'); localStorage.removeItem('studentName'); sessionId=null; studentName=null; updateRecallButtonVisibility();
             }
             showLoginModal();
         }
@@ -338,11 +468,57 @@
 
         function startReconnectionProcess(){ if(reconnectInterval) return; reconnectInterval=setInterval(async()=>{ reconnectAttempts++; updateConnectionStatus('reconnecting', reconnectAttempts); if(reconnectAttempts>=maxReconnectAttempts){ clearInterval(reconnectInterval); reconnectInterval=null; updateConnectionStatus('failed'); return;} attemptReconnection(); },3000); }
         async function attemptReconnection(){ try{ const r= await fetch(`${API_BASE}/auth/validate-session`, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({sessionId})}); if(r.ok){ if(socket) socket.disconnect(); connectSocket(); } else logout(); }catch(e){} }
-        function logout(){ isManualDisconnect=true; clearInterval(reconnectInterval); reconnectInterval=null; localStorage.removeItem('studentSession'); localStorage.removeItem('studentName'); localStorage.removeItem('week5_assessment_state'); sessionId=null; studentName=null; evaluationStartTime=null; if(socket){ socket.disconnect(); socket=null;} isManualDisconnect=false; showLoginModal(); updateConnectionStatus('disconnected'); }
+        function logout(){
+            isManualDisconnect=true;
+            clearInterval(reconnectInterval);
+            reconnectInterval=null;
+            localStorage.removeItem('studentSession');
+            localStorage.removeItem('studentName');
+            localStorage.removeItem('week5_assessment_state');
+            sessionId=null;
+            studentName=null;
+            evaluationStartTime=null;
+            resetAssessmentState({ preserveStudentInfo:false, silent:true });
+            updateRecallButtonVisibility();
+            if(socket){ socket.disconnect(); socket=null; }
+            isManualDisconnect=false;
+            showLoginModal();
+            updateConnectionStatus('disconnected');
+        }
 
         document.getElementById('loginForm').addEventListener('submit', async e=>{
-            e.preventDefault(); const name = document.getElementById('loginStudentName').value.trim(); const pass = document.getElementById('loginPassword').value; if(!name){ return showError('Enter your name'); } if(!pass){ return showError('Password required'); }
-            try { const resp = await fetch(`${API_BASE}/auth/login`, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({username:name, password:pass})}); const data = await resp.json(); if(!resp.ok || !data.sessionId) throw new Error(data.error||'Login failed'); clearForNewStudent(data.studentName); studentName=data.studentName; sessionId=data.sessionId; localStorage.setItem('studentName', studentName); localStorage.setItem('studentSession', sessionId); hideLoginModal(); lockStudentName(); connectSocket(); } catch(err){ showError(err.message); }
+            e.preventDefault();
+            const name = document.getElementById('loginStudentName').value.trim();
+            const passInput = document.getElementById('loginPassword').value;
+            const pass = passInput ? passInput.trim() : '';
+            if(!name){ return showError('Enter your name'); }
+            if(!pass){ return showError('Password required'); }
+
+            const effectivePassword = pass === 'student123' ? 'fresnostate123' : pass;
+
+            try {
+                const resp = await fetch(`${API_BASE}/auth/login`, {
+                    method:'POST',
+                    headers:{'Content-Type':'application/json'},
+                    body: JSON.stringify({username:name, password:effectivePassword})
+                });
+                const data = await resp.json();
+                if(!resp.ok || !data.sessionId) {
+                    const message = data?.error || (resp.status === 401 ? 'Invalid student credentials. Use fresnostate123.' : 'Login failed');
+                    throw new Error(message);
+                }
+                clearForNewStudent(data.studentName);
+                studentName=data.studentName;
+                sessionId=data.sessionId;
+                localStorage.setItem('studentName', studentName);
+                localStorage.setItem('studentSession', sessionId);
+                hideLoginModal();
+                lockStudentName();
+                connectSocket();
+                updateRecallButtonVisibility();
+            } catch(err){
+                showError(err.message || 'Login failed. Please try again.');
+            }
         });
 
         function showError(msg){ const el=document.getElementById('loginError'); el.textContent=msg; el.style.display='block'; setTimeout(()=> el.style.display='none',5000); }
@@ -350,7 +526,15 @@
 
         function lockStudentName(){ const f=$('#studentName'); if(f){ f.value=studentName; f.readonly=true; f.style.border='2px solid #28a745'; f.style.background='#f1f5f9'; f.title='Locked to session'; } }
 
-        function clearForNewStudent(newName){ const prev=localStorage.getItem('studentName'); if(prev && prev.toLowerCase()!==newName.toLowerCase()){ localStorage.removeItem('week5_assessment_state'); $$('.checklist-item').forEach(ci=>{ ci.classList.remove('checked','failed'); ci.querySelectorAll('input[type="checkbox"]').forEach(c=> c.checked=false); }); ['evaluatorName','summary_notes','safety_notes','followup_notes'].forEach(id=>{ const el=$('#'+id); if(el) el.value='';}); updateCounts(); showSuccess('Previous student data cleared'); }}
+        function clearForNewStudent(newName){
+            const prev=localStorage.getItem('studentName');
+            if(prev && prev.toLowerCase()!==newName.toLowerCase()){
+                localStorage.removeItem('week5_assessment_state');
+                resetAssessmentState({ preserveStudentInfo:true, silent:true });
+                showSuccess('Previous student data cleared');
+                updateRecallButtonVisibility();
+            }
+        }
 
         function toggleSection(btn){ const section=btn.closest('.section'); const expanded = btn.getAttribute('aria-expanded')==='true'; btn.setAttribute('aria-expanded', String(!expanded)); section.classList.toggle('collapsed', expanded); }
 
@@ -373,6 +557,15 @@
 
         async function submitEvaluation(force=false){
             const score=getScore();
+            const items=collectItems();
+            const notes={
+                summary: $('#summary_notes').value,
+                safety: $('#safety_notes').value,
+                follow: $('#followup_notes').value,
+                evaluatorName: $('#evaluatorName').value,
+                scenarioTime: $('#scenarioTime').value,
+                evaluationDate: $('#evaluationDate').value
+            };
             if(!socket||!socket.connected){ const retry=confirm('Not connected. Attempt reconnect before submit?'); if(retry){ await attemptReconnection(); setTimeout(()=> submitEvaluation(force),1500); return; } return; }
             // Duplicate evaluation check (align with Week1/Week2 pattern)
             if(!force){
@@ -381,9 +574,14 @@
                     if(resp.ok){ const data=await resp.json(); if(data.duplicate){ if(!confirm(`An evaluation already exists (Score ${data.existingEvaluation.score}%). Overwrite?`)) return; return submitEvaluation(true); } }
                 } catch(err){ console.warn('Duplicate check failed', err); }
             }
-            socket?.emit('evaluation-complete',{ courseWeekId:5, courseName:'Week 5 - Physical Assessment', score, items:collectItems(), notes:{ summary:$('#summary_notes').value, safety:$('#safety_notes').value, follow:$('#followup_notes').value }, evaluatorName: $('#evaluatorName').value, scenarioTime: $('#scenarioTime').value, startTime: evaluationStartTime, endTime:new Date().toISOString(), overwrite:force });
+            socket?.emit('evaluation-complete',{ courseWeekId:5, courseName:'Week 5 - Physical Assessment', score, items, notes, evaluatorName: notes.evaluatorName, scenarioTime: notes.scenarioTime, startTime: evaluationStartTime, endTime:new Date().toISOString(), overwrite:force });
             localStorage.removeItem('week5_assessment_state');
+            const snapshot={ timestamp: Date.now(), studentName, courseWeekId:5, score, notes, items };
+            saveLastEvaluationSnapshot(snapshot);
+            updateRecallButtonVisibility();
             alert(`Assessment submitted! Score: ${score.pct}% (${score.passed}/${score.total})`);
+            resetAssessmentState({ preserveStudentInfo:true, silent:true });
+            showSuccess('Submission recorded. Workspace reset for the next assessment.');
         }
 
         // Guided Completion System
@@ -426,13 +624,27 @@
         window.cancelGuidedMode = cancelGuidedMode; window.markGuided = markGuided; window.skipGuided = skipGuided; window.completeGuided = completeGuided; window.guardedSubmit = guardedSubmit;
 
         document.getElementById('downloadReport').addEventListener('click', generateReport);
-        document.getElementById('resetForm').addEventListener('click', ()=>{ if(!confirm('Reset entire form?')) return; localStorage.removeItem('week5_assessment_state'); $$('.checklist-item').forEach(i=>{ i.classList.remove('checked','failed'); i.querySelectorAll('input[type="checkbox"]').forEach(c=> c.checked=false); }); ['summary_notes','safety_notes','followup_notes'].forEach(id=>{ const el=$('#'+id); if(el) el.value=''; }); updateCounts(); });
+        document.getElementById('resetForm').addEventListener('click', ()=>{
+            if(!confirm('Reset entire form?')) return;
+            resetAssessmentState({ preserveStudentInfo:true, silent:true });
+            showSuccess('Form reset. You can begin the assessment again.');
+            updateRecallButtonVisibility();
+        });
     document.getElementById('submitEvaluation').addEventListener('click', e=>{ e.preventDefault(); guardedSubmit(); });
         document.getElementById('expandAll').addEventListener('click', ()=> $$('.section').forEach(s=>{ s.classList.remove('collapsed'); $('.section-header', s)?.setAttribute('aria-expanded','true'); }));
         document.getElementById('collapseAll').addEventListener('click', ()=> $$('.section').forEach(s=>{ s.classList.add('collapsed'); $('.section-header', s)?.setAttribute('aria-expanded','false'); }));
         $$('input, textarea').forEach(el=> el.addEventListener('input', ()=> saveState()));
 
-        document.addEventListener('DOMContentLoaded', ()=>{ const today=new Date().toISOString().slice(0,10); if(!$('#evaluationDate').value) $('#evaluationDate').value=today; loadState(); lockStudentName(); updateCounts(); });
+        document.addEventListener('DOMContentLoaded', ()=>{
+            const today=new Date().toISOString().slice(0,10);
+            if(!$('#evaluationDate').value) $('#evaluationDate').value=today;
+            loadState();
+            lockStudentName();
+            updateCounts();
+            const recallBtn=document.getElementById('recallEvaluationBtn');
+            if(recallBtn){ recallBtn.addEventListener('click', recallLastEvaluation); }
+            updateRecallButtonVisibility();
+        });
 
         // --- Switch Student / Logout Feature (Week 5) ---
         function switchStudent(){

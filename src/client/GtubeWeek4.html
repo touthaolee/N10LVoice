@@ -270,7 +270,8 @@
       <button type="button" class="btn btn-secondary" id="expandAll">Expand all</button>
       <button type="button" class="btn btn-secondary" id="collapseAll">Collapse all</button>
       <button type="button" class="btn btn-secondary" id="resetForm">Reset form</button>
-  <button type="button" class="btn btn-secondary" id="switchStudent">Switch / Logout</button>
+      <button type="button" class="btn btn-secondary" id="recallEvaluationBtn" style="display: none;">Recall Last Submission</button>
+      <button type="button" class="btn btn-secondary" id="switchStudent">Switch / Logout</button>
       <button type="button" class="btn btn-primary" id="downloadReport">Generate report</button>
       <button type="button" class="btn btn-success" id="submitEvaluation" style="background: var(--ok); margin-left: 10px;">Submit Evaluation</button>
     </div>
@@ -1283,6 +1284,53 @@
     const API_BASE = `${BASE_PATH}/api`;
     const SOCKET_PATH = `${BASE_PATH}/socket.io`;
 
+    const defaultScenarioField = document.getElementById('scenarioTime');
+    const defaultEvaluationDateField = document.getElementById('evaluationDate');
+    const DEFAULT_SCENARIO_TIME = defaultScenarioField ? defaultScenarioField.value : '0700 - 1500 (7am - 3pm Shift)';
+    const DEFAULT_EVALUATION_DATE = defaultEvaluationDateField ? defaultEvaluationDateField.value : new Date().toISOString().split('T')[0];
+
+    const LAST_EVALUATION_PREFIX = 'gtubeWeek4LastEvaluation_';
+
+    function getLastEvaluationStorageKey() {
+      if (!studentName) return null;
+      return `${LAST_EVALUATION_PREFIX}${studentName}`;
+    }
+
+    function saveLastEvaluationSnapshot(snapshot) {
+      try {
+        const key = getLastEvaluationStorageKey();
+        if (!key) return;
+        localStorage.setItem(key, JSON.stringify(snapshot));
+      } catch (error) {
+        console.error('Failed to save last evaluation snapshot:', error);
+      }
+    }
+
+    function loadLastEvaluationSnapshot() {
+      try {
+        const key = getLastEvaluationStorageKey();
+        if (!key) return null;
+        const raw = localStorage.getItem(key);
+        if (!raw) return null;
+        return JSON.parse(raw);
+      } catch (error) {
+        console.warn('Failed to load last evaluation snapshot:', error);
+        return null;
+      }
+    }
+
+    function updateRecallButtonVisibility() {
+      const btn = document.getElementById('recallEvaluationBtn');
+      if (!btn) return;
+      const key = getLastEvaluationStorageKey();
+      const hasSnapshot = key && localStorage.getItem(key);
+      btn.style.display = hasSnapshot ? 'inline-flex' : 'none';
+      btn.disabled = !hasSnapshot;
+      if (hasSnapshot) {
+        btn.setAttribute('aria-label', 'Recall your most recent submission for review');
+      }
+    }
+
     // Utilities
     const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
     const $  = (sel, root=document) => root.querySelector(sel);
@@ -1303,7 +1351,7 @@
       const formData = {
         evaluatorName: document.getElementById('evaluatorName')?.value || '',
         scenarioTime: document.getElementById('scenarioTime')?.value || '',
-        additionalNotes: document.getElementById('additionalNotes')?.value || '',
+        additionalNotes: document.getElementById('additional_notes')?.value || '',
         checkboxStates: {},
         timestamp: Date.now()
       };
@@ -1377,6 +1425,7 @@
             connectSocket();
             // Restore any saved form state after connecting
             setTimeout(restoreFormState, 1000);
+            updateRecallButtonVisibility();
             return;
           }
         } catch (error) {
@@ -1388,6 +1437,7 @@
         localStorage.removeItem('studentName');
         sessionId = null;
         studentName = null;
+        updateRecallButtonVisibility();
       }
       
       showLoginModal();
@@ -1590,7 +1640,9 @@
       studentName = null;
       evaluationStartTime = null;
       reconnectAttempts = 0;
-      
+      resetAssessmentState({ preserveStudentInfo: false, preserveSpeechTranscript: false, silent: true });
+      updateRecallButtonVisibility();
+
       if (socket) {
         socket.disconnect();
         socket = null;
@@ -1912,7 +1964,12 @@
       const notes = {
         additionalNotes: document.getElementById('additionalNotes')?.value || '',
         evaluatorName: document.getElementById('evaluatorName')?.value || '',
-        scenarioTime: document.getElementById('scenarioTime')?.value || ''
+        scenarioTime: document.getElementById('scenarioTime')?.value || '',
+        evaluationDate: document.getElementById('evaluationDate')?.value || '',
+        sbar_notes: document.getElementById('sbar_notes')?.value || '',
+        collaboration_notes: document.getElementById('collaboration_notes')?.value || '',
+        critical_thinking_notes: document.getElementById('critical_thinking_notes')?.value || '',
+        clinical_judgment_notes: document.getElementById('clinical_judgment_notes')?.value || ''
       };
 
       // Check for duplicate evaluations first (unless forcing overwrite)
@@ -1992,8 +2049,21 @@
 
       // Clear auto-saved form state after successful submission
       localStorage.removeItem('evaluationFormState');
-      
+      const snapshot = {
+        timestamp: Date.now(),
+        studentName,
+        courseWeekId: 4,
+        score,
+        notes,
+        items
+      };
+      saveLastEvaluationSnapshot(snapshot);
+      updateRecallButtonVisibility();
+
       alert(`Evaluation completed!\nScore: ${score.percent}% (${score.passed}/${score.total})`);
+
+      resetAssessmentState({ preserveStudentInfo: true, preserveSpeechTranscript: false, silent: true });
+      showSuccess('Submission recorded. Workspace reset for the next assessment.');
     }
 
     // Login form handler
@@ -2014,13 +2084,14 @@
           studentName = data.studentName;
           sessionId = data.sessionId;
           localStorage.setItem('studentName', data.studentName);
-            localStorage.setItem('studentSession', data.sessionId);
-          localStorage.setItem('sessionExpires', data.expiresAt);
-          hideLoginModal();
-          connectSocket();
-        } else {
-          throw new Error('Login failed - no session created');
-        }
+          localStorage.setItem('studentSession', data.sessionId);
+        localStorage.setItem('sessionExpires', data.expiresAt);
+        hideLoginModal();
+        connectSocket();
+        updateRecallButtonVisibility();
+      } else {
+        throw new Error('Login failed - no session created');
+      }
       } catch (error) {
         showError(error.message || 'Failed to sign in');
       }
@@ -2033,16 +2104,9 @@
         // Remove stored states relevant to Week 1 / Personal Care
         localStorage.removeItem('n10l_peer_eval_state');
         localStorage.removeItem('evaluationFormState');
-        // Reset checklist UI
-        $$('.checklist-item').forEach(ci=>{
-          ci.classList.remove('checked','failed');
-          ci.querySelectorAll('input[type="checkbox"]').forEach(c=> c.checked = false);
-        });
-        // Clear evaluator name (studentName stays locked to new login)
-        const evaluatorField = document.getElementById('evaluatorName');
-        if(evaluatorField) evaluatorField.value='';
-        updateCounts();
+        resetAssessmentState({ preserveStudentInfo: true, preserveSpeechTranscript: true, silent: true });
         showSuccess('Previous student data cleared');
+        updateRecallButtonVisibility();
       }
     }
 
@@ -2060,12 +2124,11 @@
       localStorage.removeItem('evaluationFormState');
       // Reset in‑memory vars
       sessionId=null; studentName=null; evaluationStartTime=null;
-      // Clear UI selections
-      $$('.checklist-item').forEach(ci=>{ ci.classList.remove('checked','failed'); ci.querySelectorAll('input[type="checkbox"]').forEach(c=> c.checked=false); });
-      const evalField=$('#evaluatorName'); if(evalField) evalField.value='';
+      resetAssessmentState({ preserveStudentInfo: false, preserveSpeechTranscript: false, silent: true });
       // Show login modal again
       if(typeof showLoginModal==='function') showLoginModal(); else document.getElementById('loginModal').style.display='flex';
       showSuccess('Student session cleared. Ready for new login.');
+      updateRecallButtonVisibility();
     }
     // Attach listener after DOM ready if button exists
     document.addEventListener('DOMContentLoaded',()=>{ const btn=document.getElementById('switchStudent'); if(btn) btn.addEventListener('click',switchStudent); });
@@ -2113,6 +2176,175 @@
       sendProgressUpdate();
     }
 
+    function clearSpeechInterface() {
+      const hasSpeech = typeof speechToText !== 'undefined' && speechToText;
+      if (hasSpeech && speechToText.isRecognizing) {
+        try { stopSpeechRecognition(); } catch (error) {
+          console.debug('Speech stop (ignore if not recording):', error?.message || error);
+        }
+      }
+      if (hasSpeech && typeof speechToText.clear === 'function') {
+        speechToText.clear();
+      }
+      const finalTranscriptEl = document.getElementById('transcriptFinal');
+      const interimTranscriptEl = document.getElementById('transcriptInterim');
+      if (finalTranscriptEl) finalTranscriptEl.textContent = '';
+      if (interimTranscriptEl) interimTranscriptEl.textContent = '';
+      const statusTextEl = document.getElementById('speechStatusText');
+      if (statusTextEl) statusTextEl.textContent = 'Ready to begin assessment';
+      const recordingDot = document.getElementById('recordingDot');
+      if (recordingDot) recordingDot.classList.remove('active');
+      if (typeof updateSpeechUI === 'function') {
+        updateSpeechUI(false);
+      } else {
+        const startBtn = document.getElementById('speechStartBtn');
+        const stopBtn = document.getElementById('speechStopBtn');
+        const saveBtn = document.getElementById('speechSaveBtn');
+        const submitBtn = document.getElementById('speechSubmitBtn');
+        if (startBtn) startBtn.style.display = 'flex';
+        if (stopBtn) stopBtn.style.display = 'none';
+        if (saveBtn) saveBtn.style.display = 'none';
+        if (submitBtn) submitBtn.style.display = 'none';
+      }
+    }
+
+    function resetAssessmentState(options = {}) {
+      const {
+        preserveStudentInfo = true,
+        preserveSpeechTranscript = false,
+        silent = false
+      } = options;
+
+      $$('.checklist-item').forEach(item => {
+        item.classList.remove('checked', 'failed');
+        const pass = item.querySelector('input.checkbox.pass');
+        const fail = item.querySelector('input.checkbox.fail');
+        if (pass) pass.checked = false;
+        if (fail) fail.checked = false;
+      });
+
+      const noteFields = [
+        'sbar_notes',
+        'collaboration_notes',
+        'critical_thinking_notes',
+        'clinical_judgment_notes',
+        'additional_notes'
+      ];
+      noteFields.forEach(id => {
+        const field = document.getElementById(id);
+        if (field) field.value = '';
+      });
+
+      const evaluatorField = document.getElementById('evaluatorName');
+      if (evaluatorField) evaluatorField.value = '';
+
+      const scenarioField = document.getElementById('scenarioTime');
+      if (scenarioField) scenarioField.value = DEFAULT_SCENARIO_TIME;
+
+      const dateField = document.getElementById('evaluationDate');
+      if (dateField) {
+        dateField.value = DEFAULT_EVALUATION_DATE;
+      }
+
+      localStorage.removeItem('evaluationFormState');
+      localStorage.removeItem('n10l_peer_eval_state');
+
+      guidedQueue = [];
+      guidedIndex = 0;
+      guidedActive = false;
+      clearGuidedFocus();
+
+      updateCounts();
+
+      if (!preserveSpeechTranscript) {
+        clearSpeechInterface();
+      }
+
+      assessmentSessionId = null;
+      speechSegmentCount = 0;
+
+      if (!silent) {
+        showSuccess('Assessment reset. Ready for a new attempt.');
+      }
+
+      if (!preserveStudentInfo) {
+        const studentField = document.getElementById('studentName');
+        if (studentField) studentField.value = '';
+      }
+    }
+
+    function applyEvaluationSnapshot(snapshot) {
+      if (!snapshot || !Array.isArray(snapshot.items)) {
+        showError('No saved submission found to recall.');
+        updateRecallButtonVisibility();
+        return;
+      }
+
+      resetAssessmentState({ preserveStudentInfo: true, preserveSpeechTranscript: true, silent: true });
+
+      const itemsByKey = new Map(snapshot.items.map(item => [item.key, item]));
+
+      $$('.section').forEach(section => {
+        const sectionName = section.querySelector('.section-title')?.textContent?.trim() || 'Unknown Section';
+        let sequence = 0;
+        $$('.checklist-item', section).forEach(checklistItem => {
+          const key = `${sectionName.toLowerCase().replace(/\s+/g, '_')}_${sequence++}`;
+          const saved = itemsByKey.get(key);
+
+          const passCheckbox = checklistItem.querySelector('input.checkbox.pass[type="checkbox"]');
+          const failCheckbox = checklistItem.querySelector('input.checkbox.fail[type="checkbox"]');
+
+          if (passCheckbox) passCheckbox.checked = false;
+          if (failCheckbox) failCheckbox.checked = false;
+          checklistItem.classList.remove('checked', 'failed');
+
+          if (!saved) return;
+          const status = saved.status || (saved.checked ? 'pass' : saved.failed ? 'fail' : 'not_completed');
+          if (status === 'pass' && passCheckbox) {
+            passCheckbox.checked = true;
+            checklistItem.classList.add('checked');
+          } else if (status === 'fail' && failCheckbox) {
+            failCheckbox.checked = true;
+            checklistItem.classList.add('failed');
+          }
+        });
+      });
+
+      const notes = snapshot.notes || {};
+      const noteFieldMap = {
+        evaluatorName: notes.evaluatorName || '',
+        scenarioTime: notes.scenarioTime || DEFAULT_SCENARIO_TIME,
+        evaluationDate: notes.evaluationDate || DEFAULT_EVALUATION_DATE,
+        sbar_notes: notes.sbar_notes || '',
+        collaboration_notes: notes.collaboration_notes || '',
+        critical_thinking_notes: notes.critical_thinking_notes || '',
+        clinical_judgment_notes: notes.clinical_judgment_notes || '',
+        additional_notes: notes.additional_notes || ''
+      };
+
+      Object.entries(noteFieldMap).forEach(([id, value]) => {
+        const field = document.getElementById(id);
+        if (field) field.value = value;
+      });
+
+      updateCounts();
+
+      showSuccess('Last submission recalled. You may review or make adjustments before resubmitting.');
+    }
+
+    function recallLastEvaluation() {
+      const snapshot = loadLastEvaluationSnapshot();
+      if (!snapshot) {
+        showError('No saved submission found to recall.');
+        updateRecallButtonVisibility();
+        return;
+      }
+      applyEvaluationSnapshot(snapshot);
+    }
+
+    window.resetAssessmentState = resetAssessmentState;
+    window.recallLastEvaluation = recallLastEvaluation;
+
     function handleToggle(e) {
       const input = e.target;
       if (!(input instanceof HTMLInputElement)) return;
@@ -2143,11 +2375,9 @@
 
     function resetFormHard() {
       if (!confirm('Reset the entire form? This cannot be undone.')) return;
-      $('#evaluationForm').reset();
-      $$('.checklist-item').forEach(i => i.classList.remove('checked','failed'));
-      // Clear local storage state
+      resetAssessmentState({ preserveStudentInfo: true, preserveSpeechTranscript: false, silent: true });
       localStorage.removeItem('n10l_peer_eval_state');
-      updateCounts();
+      showSuccess('Form reset. You can begin the assessment again.');
     }
 
     function saveState() {
@@ -2299,6 +2529,11 @@
 
       // Load saved state (if any)
       loadState();
+      const recallBtn = document.getElementById('recallEvaluationBtn');
+      if (recallBtn) {
+        recallBtn.addEventListener('click', recallLastEvaluation);
+      }
+      updateRecallButtonVisibility();
 
       // Listeners
       document.body.addEventListener('change', handleToggle);

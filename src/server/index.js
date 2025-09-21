@@ -808,6 +808,21 @@ io.on('connection', (socket) => {
     }
   });
 
+  // Health check ping/pong for admin dashboard
+  socket.on('admin-ping', (payload = {}) => {
+    if (socket.user.role !== 'admin') return;
+
+    const serverTime = Date.now();
+    const sentAt = typeof payload.timestamp === 'number' ? payload.timestamp : null;
+    const latency = sentAt !== null ? serverTime - sentAt : null;
+
+    socket.emit('admin-pong', {
+      serverTime,
+      latency,
+      type: payload.type || 'health-check'
+    });
+  });
+
   socket.on('disconnect', () => {
     console.log(`User ${socket.user.username} disconnected`);
     

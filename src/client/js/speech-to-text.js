@@ -51,6 +51,7 @@ class SpeechToText {
         this.visibilityMonitor = null; // NEW: Page visibility monitor
         this.isReconnecting = false; // NEW: Prevent multiple reconnection attempts
         this.pageHidden = false; // NEW: Track if page is hidden
+        this.isSimulatedStop = false; // NEW: Track if stop is for reconnection purposes
         
         // Event callbacks
         this.onStart = null;
@@ -268,13 +269,10 @@ class SpeechToText {
                 console.log('🚀 Emitting speech-start event:', startData);
                 this.socket.emit('speech-start', startData);
             } else {
-                console.warn('❌ Cannot emit speech-start:', {
-                    enableRealtime: this.options.enableRealtime,
-                    hasSocket: !!this.socket,
-                    socketConnected: this.socket?.connected,
-                    sessionId: this.sessionId,
-                    studentName: this.studentName
-                });
+                // Socket.IO not available - this is normal for standalone usage
+                if (this.options.enableRealtime) {
+                    console.log('ℹ️ Real-time events disabled - socket not connected');
+                }
             }
             
             if (this.options.autoSave && this.options.saveInterval > 0) {
@@ -287,6 +285,13 @@ class SpeechToText {
         // Recognition ended
         this.recognition.onend = () => {
             console.log('🔄 Speech recognition ended - analyzing reason and determining action...');
+            
+            // If this was a simulated stop for reconnection, ignore it
+            if (this.isSimulatedStop) {
+                console.log('⏳ Recognition ended for reconnection - ignoring end event');
+                this.isSimulatedStop = false; // Reset the flag
+                return;
+            }
             
             // If user manually stopped, don't reconnect
             if (this.userStopped) {
@@ -426,11 +431,10 @@ class SpeechToText {
                 });
                 this.socket.emit('speech-realtime', realtimeData);
             } else {
-                console.warn('❌ Cannot emit speech-realtime:', {
-                    enableRealtime: this.options.enableRealtime,
-                    hasSocket: !!this.socket,
-                    socketConnected: this.socket?.connected
-                });
+                // Socket.IO not available - this is normal for standalone usage
+                if (this.options.enableRealtime) {
+                    console.log('ℹ️ Real-time streaming disabled - socket not connected');
+                }
             }
 
             // Trigger callback with results
@@ -702,6 +706,15 @@ class SpeechToText {
         this.clearSilenceTimer();
         this.stopHealthMonitoring(); // NEW: Stop health monitoring
         this.resetRestartCounter();
+        
+        // Clear any pending reconnection attempts
+        if (this.reconnectionTimer) {
+            clearTimeout(this.reconnectionTimer);
+            this.reconnectionTimer = null;
+        }
+        
+        this.connectionState = 'disconnected';
+        this.notifyConnectionChange('disconnected', 'Stopped by user');
 
         try {
             this.recognition.stop();
@@ -723,6 +736,12 @@ class SpeechToText {
 
     // Auto-save functionality
     startAutoSave() {
+        // Don't start auto-save if it's disabled
+        if (!this.options.autoSave) {
+            console.log('ℹ️ Auto-save is disabled');
+            return;
+        }
+        
         this.stopAutoSave(); // Clear any existing timer
         
         this.saveTimer = setInterval(() => {
@@ -1036,7 +1055,7 @@ class SpeechToText {
             clearTimeout(this.reconnectionTimer);
         }
         
-        this.reconnectionTimer = setTimeout(() => {
+        this.reconnectionTimer = setTimeout(async () => {
             if (this.userStopped || !this.isRecognizing) {
                 console.log('🛑 Reconnection cancelled - user stopped or not recognizing');
                 return;
@@ -1044,14 +1063,48 @@ class SpeechToText {
             
             console.log(`🚀 Starting reconnection attempt ${this.reconnectionAttempts}`);
             
+            // Check permissions before attempting reconnection
+            const hasPermissions = await this.checkAndRequestPermissions();
+            if (!hasPermissions) {
+                console.error('❌ Cannot reconnect - microphone permissions required');
+                this.connectionState = 'error';
+                this.isRecognizing = false;
+                this.notifyConnectionChange('error', 'Microphone permissions required');
+                return;
+            }
+            
             try {
                 // Reset recognition state
                 this.connectionState = 'connecting';
                 this.notifyConnectionChange('connecting', `Reconnection attempt ${this.reconnectionAttempts}`);
                 
-                // Restart recognition
-                this.setupRecognition();
-                this.recognition.start();
+                // Stop current recognition if it's still running
+                try {
+                    if (this.recognition) {
+                        this.isSimulatedStop = true; // Flag this as a reconnection stop
+                        this.recognition.stop();
+                    }
+                } catch (stopError) {
+                    console.log('Recognition was already stopped or stopping');
+                }
+                
+                // Wait a moment for the stop to complete, then restart
+                setTimeout(() => {
+                    try {
+                        // Reset the simulated stop flag
+                        this.isSimulatedStop = false;
+                        
+                        // Setup event handlers and start fresh
+                        this.setupEventHandlers();
+                        this.recognition.start();
+                    } catch (startError) {
+                        console.error('Failed to start recognition after stop:', startError);
+                        // Try again with next attempt
+                        if (this.reconnectionAttempts < this.maxReconnectionAttempts) {
+                            setTimeout(() => this.attemptIntelligentReconnection(), 1000);
+                        }
+                    }
+                }, 100);
                 
                 // Monitor the reconnection success
                 this.monitorReconnectionSuccess();
@@ -1115,18 +1168,44 @@ class SpeechToText {
         // For backwards compatibility, also call individual callbacks
         switch (state) {
             case 'connected':
-                if (this.onConnect) this.onConnect({ message, timestamp });
+                this.triggerCallback('onConnect', { message, timestamp });
                 break;
             case 'disconnected':
-                if (this.onDisconnect) this.onDisconnect({ message, timestamp });
+                this.triggerCallback('onDisconnect', { message, timestamp });
                 break;
             case 'error':
-                if (this.onError) this.onError({
+                this.triggerCallback('onError', {
                     error: 'connection-error',
                     message: message,
                     timestamp: timestamp
                 });
                 break;
+        }
+    }
+    
+    // Permission recovery for reconnection attempts
+    async checkAndRequestPermissions() {
+        try {
+            // Check if we have microphone access
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            stream.getTracks().forEach(track => track.stop()); // Clean up
+            return true;
+        } catch (error) {
+            console.warn('🎤 Microphone permission check failed:', error);
+            
+            // If permission was denied, we can't auto-recover
+            if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+                this.triggerCallback('onError', {
+                    error: 'microphone-permission-denied',
+                    message: 'Microphone access is required for speech recognition. Please refresh the page and allow microphone access.',
+                    critical: true,
+                    timestamp: new Date().toISOString()
+                });
+                return false;
+            }
+            
+            // For other errors (like no microphone), we can still try
+            return true;
         }
     }
     
@@ -1167,6 +1246,39 @@ class SpeechToText {
                 }
             }
         });
+    }
+    
+    // Helper method to trigger callbacks safely
+    triggerCallback(callbackName, data = {}) {
+        const callback = this[callbackName];
+        if (typeof callback === 'function') {
+            try {
+                callback(data);
+            } catch (error) {
+                console.error(`Error in ${callbackName} callback:`, error);
+            }
+        }
+    }
+
+    // Update the active Socket.IO connection reference
+    setSocket(newSocket) {
+        if (newSocket && typeof newSocket.on !== 'function') {
+            console.warn('setSocket called with an invalid socket instance');
+            return;
+        }
+        this.socket = newSocket || null;
+    }
+
+    // Update the base API URL used for REST fallbacks
+    setApiBase(apiBaseUrl) {
+        if (apiBaseUrl && typeof apiBaseUrl === 'string') {
+            this.options.apiBaseUrl = apiBaseUrl;
+        }
+    }
+
+    // Update cached student metadata used for transcripts and events
+    setStudentName(name) {
+        this.studentName = name ? String(name).trim() || null : null;
     }
 
     // Static method to check browser support

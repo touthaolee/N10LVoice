@@ -1,0 +1,203 @@
+<div class="scenario-summary">
+  <h3>Patient Case Summary</h3>
+  <div class="patient-info">
+    <strong>Patient:</strong> Shannon Shaw, 87 years old<br />
+    <strong>Diagnosis:</strong> CVA (Stroke), Diarrhea of unknown etiology<br />
+    <strong>Symptoms:</strong> Right hemiparesis, productive cough, watery diarrhea<br />
+    <strong>Status:</strong> Awake, alert, oriented x3 (AAO x3)<br />
+    <strong>Precautions:</strong> Aspiration; Droplet and Contact<br />
+    <strong>Orders:</strong> Private room; OOB for meals; Stool culture
+  </div>
+</div>
+
+<div class="section" id="sec-sbar">
+  <button type="button" class="section-header" aria-expanded="true" onclick="toggleSection(this)">
+    <span class="section-title">SBAR Handoff &amp; Admission</span>
+    <span class="section-meta" data-count="sec-sbar"></span>
+    <span class="toggle-icon">▾</span>
+  </button>
+  <div class="section-content">
+    <div class="checklist-item"><div class="checkbox-container">
+      <label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="sbar_situation" data-critical="true" /><span class="checkbox-label pass">✓ PASS</span></label>
+      <label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="sbar_situation" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label>
+    </div><div class="item-text">States Situation accurately (87 y/o admission for stroke w/ right hemiparesis, productive cough, watery diarrhea)<span class="critical-badge">CRITICAL</span></div></div>
+    <div class="checklist-item"><div class="checkbox-container">
+      <label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="sbar_diagnosis" /><span class="checkbox-label pass">✓ PASS</span></label>
+      <label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="sbar_diagnosis" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label>
+    </div><div class="item-text">States Diagnoses: CVA, diarrhea of unknown etiology</div></div>
+    <div class="checklist-item"><div class="checkbox-container">
+      <label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="sbar_background" /><span class="checkbox-label pass">✓ PASS</span></label>
+      <label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="sbar_background" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label>
+    </div><div class="item-text">States Background: Smoker since teenager; NKA</div></div>
+    <div class="checklist-item"><div class="checkbox-container">
+      <label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="sbar_assessment_findings" data-critical="true" /><span class="checkbox-label pass">✓ PASS</span></label>
+      <label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="sbar_assessment_findings" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label>
+    </div><div class="item-text">States Assessment findings: AAO x3, right hemiparesis, coughing/expectorating copious sputum, frequent incontinent diarrhea<span class="critical-badge">CRITICAL</span></div></div>
+    <div class="checklist-item"><div class="checkbox-container">
+      <label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="sbar_orders" /><span class="checkbox-label pass">✓ PASS</span></label>
+      <label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="sbar_orders" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label>
+    </div><div class="item-text">Identifies current orders: Private room, aspiration + droplet/contact precautions, OOB for meals, stool culture</div></div>
+    <div class="checklist-item"><div class="checkbox-container">
+      <label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="sbar_priority_risks" data-critical="true" /><span class="checkbox-label pass">✓ PASS</span></label>
+      <label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="sbar_priority_risks" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label>
+    </div><div class="item-text">Identifies priority risks: aspiration risk, fall risk (hemiparesis), fluid/electrolyte risk (diarrhea)<span class="critical-badge">CRITICAL</span></div></div>
+    <div class="checklist-item"><div class="checkbox-container">
+      <label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="sbar_recommendation" /><span class="checkbox-label pass">✓ PASS</span></label>
+      <label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="sbar_recommendation" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label>
+    </div><div class="item-text">States Recommendations: monitor sputum &amp; airway, mobility assistance, incontinence &amp; skin care, hydration status, infection control</div></div>
+  </div>
+</div>
+
+<div class="section" id="sec-begin">
+  <button type="button" class="section-header" aria-expanded="true" onclick="toggleSection(this)">
+    <span class="section-title">Standard Protocol - Beginning</span>
+    <span class="section-meta" data-count="sec-begin"></span>
+    <span class="toggle-icon">▾</span>
+  </button>
+  <div class="section-content">
+    <div class="checklist-item"><div class="checkbox-container">
+      <label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="intro_self" /><span class="checkbox-label pass">✓ PASS</span></label>
+      <label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="intro_self" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label>
+    </div><div class="item-text">Introduces self by name and role</div></div>
+    <div class="checklist-item"><div class="checkbox-container">
+      <label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="patient_id" /><span class="checkbox-label pass">✓ PASS</span></label>
+      <label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="patient_id" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label>
+    </div><div class="item-text">Verifies patient identity using two identifiers</div></div>
+    <div class="checklist-item"><div class="checkbox-container">
+      <label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="hand_hygiene" data-critical="true" /><span class="checkbox-label pass">✓ PASS</span></label>
+      <label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="hand_hygiene" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label>
+    </div><div class="item-text">Performs hand hygiene upon entering room<span class="critical-badge">CRITICAL</span></div></div>
+    <div class="checklist-item"><div class="checkbox-container">
+      <label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="explain_procedure" /><span class="checkbox-label pass">✓ PASS</span></label>
+      <label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="explain_procedure" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label>
+    </div><div class="item-text">Explains procedure and obtains consent/participation</div></div>
+    <div class="checklist-item"><div class="checkbox-container">
+      <label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="raise_bed" /><span class="checkbox-label pass">✓ PASS</span></label>
+      <label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="raise_bed" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label>
+    </div><div class="item-text">Adjusts bed height for ergonomic safety</div></div>
+  </div>
+</div>
+
+<div class="section" id="sec-during">
+  <button type="button" class="section-header" aria-expanded="true" onclick="toggleSection(this)">
+    <span class="section-title">Standard Protocol - During</span>
+    <span class="section-meta" data-count="sec-during"></span>
+    <span class="toggle-icon">▾</span>
+  </button>
+  <div class="section-content">
+    <div class="checklist-item"><div class="checkbox-container">
+      <label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="communication" /><span class="checkbox-label pass">✓ PASS</span></label>
+      <label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="communication" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label>
+    </div><div class="item-text">Maintains therapeutic communication and ensures dignity</div></div>
+    <div class="checklist-item"><div class="checkbox-container">
+      <label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="aspiration_precautions" data-critical="true" /><span class="checkbox-label pass">✓ PASS</span></label>
+      <label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="aspiration_precautions" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label>
+    </div><div class="item-text">Implements aspiration precautions during oral care/meals<span class="critical-badge">CRITICAL</span></div></div>
+    <div class="checklist-item"><div class="checkbox-container">
+      <label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="infection_control" data-critical="true" /><span class="checkbox-label pass">✓ PASS</span></label>
+      <label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="infection_control" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label>
+    </div><div class="item-text">Maintains droplet/contact precautions and proper PPE<span class="critical-badge">CRITICAL</span></div></div>
+    <div class="checklist-item"><div class="checkbox-container">
+      <label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="mobility_assist" /><span class="checkbox-label pass">✓ PASS</span></label>
+      <label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="mobility_assist" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label>
+    </div><div class="item-text">Provides safe mobility assistance with gait belt</div></div>
+    <div class="checklist-item"><div class="checkbox-container">
+      <label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="skin_care" /><span class="checkbox-label pass">✓ PASS</span></label>
+      <label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="skin_care" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label>
+    </div><div class="item-text">Performs incontinence skin care with barrier protection</div></div>
+  </div>
+</div>
+
+<div class="section" id="sec-transfers">
+  <button type="button" class="section-header" aria-expanded="true" onclick="toggleSection(this)">
+    <span class="section-title">Transfers / Gait Belt</span>
+    <span class="section-meta" data-count="sec-transfers"></span>
+    <span class="toggle-icon">▾</span>
+  </button>
+  <div class="section-content">
+    <div class="checklist-item"><div class="checkbox-container">
+      <label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="gait_belt_fit" /><span class="checkbox-label pass">✓ PASS</span></label>
+      <label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="gait_belt_fit" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label>
+    </div><div class="item-text">Positions gait belt snugly at waist with space for two fingers</div></div>
+    <div class="checklist-item"><div class="checkbox-container">
+      <label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="assistive_device" /><span class="checkbox-label pass">✓ PASS</span></label>
+      <label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="assistive_device" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label>
+    </div><div class="item-text">Positions assistive device (walker/cane) within reach before standing</div></div>
+    <div class="checklist-item"><div class="checkbox-container">
+      <label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="transfer_count" /><span class="checkbox-label pass">✓ PASS</span></label>
+      <label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="transfer_count" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label>
+    </div><div class="item-text">Counts down and coordinates transfer with patient readiness</div></div>
+    <div class="checklist-item"><div class="checkbox-container">
+      <label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="transfer_safety" data-critical="true" /><span class="checkbox-label pass">✓ PASS</span></label>
+      <label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="transfer_safety" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label>
+    </div><div class="item-text">Maintains wide base of support and protects hemiparetic side<span class="critical-badge">CRITICAL</span></div></div>
+  </div>
+</div>
+
+<div class="section" id="sec-ending">
+  <button type="button" class="section-header" aria-expanded="true" onclick="toggleSection(this)">
+    <span class="section-title">Standard Protocol - Ending</span>
+    <span class="section-meta" data-count="sec-ending"></span>
+    <span class="toggle-icon">▾</span>
+  </button>
+  <div class="section-content">
+    <div class="checklist-item"><div class="checkbox-container">
+      <label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="safety_check" /><span class="checkbox-label pass">✓ PASS</span></label>
+      <label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="safety_check" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label>
+    </div><div class="item-text">Ensures patient safety: bed low, brakes on, call light within reach</div></div>
+    <div class="checklist-item"><div class="checkbox-container">
+      <label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="hand_hygiene_exit" data-critical="true" /><span class="checkbox-label pass">✓ PASS</span></label>
+      <label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="hand_hygiene_exit" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label>
+    </div><div class="item-text">Performs hand hygiene before exiting room<span class="critical-badge">CRITICAL</span></div></div>
+    <div class="checklist-item"><div class="checkbox-container">
+      <label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="documentation" /><span class="checkbox-label pass">✓ PASS</span></label>
+      <label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="documentation" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label>
+    </div><div class="item-text">States need to document care and outcomes</div></div>
+  </div>
+</div>
+
+<div class="section" id="sec-assessments">
+  <button type="button" class="section-header" aria-expanded="true" onclick="toggleSection(this)">
+    <span class="section-title">Clinical Assessments</span>
+    <span class="section-meta" data-count="sec-assessments"></span>
+    <span class="toggle-icon">▾</span>
+  </button>
+  <div class="section-content">
+    <div class="checklist-item"><div class="checkbox-container">
+      <label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="neuro_assess" data-critical="true" /><span class="checkbox-label pass">✓ PASS</span></label>
+      <label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="neuro_assess" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label>
+    </div><div class="item-text">Performs neurological assessment (orientation, pupils, motor strength)<span class="critical-badge">CRITICAL</span></div></div>
+    <div class="checklist-item"><div class="checkbox-container">
+      <label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="respiratory_assess" data-critical="true" /><span class="checkbox-label pass">✓ PASS</span></label>
+      <label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="respiratory_assess" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label>
+    </div><div class="item-text">Performs respiratory assessment (lung sounds, sputum characteristics)<span class="critical-badge">CRITICAL</span></div></div>
+    <div class="checklist-item"><div class="checkbox-container">
+      <label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="gi_assess" /><span class="checkbox-label pass">✓ PASS</span></label>
+      <label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="gi_assess" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label>
+    </div><div class="item-text">Assesses gastrointestinal status including stool frequency and characteristics</div></div>
+    <div class="checklist-item"><div class="checkbox-container">
+      <label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="skin_assess" /><span class="checkbox-label pass">✓ PASS</span></label>
+      <label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="skin_assess" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label>
+    </div><div class="item-text">Inspects skin integrity, especially pressure points and incontinence areas</div></div>
+    <div class="checklist-item"><div class="checkbox-container">
+      <label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="hydration_assess" /><span class="checkbox-label pass">✓ PASS</span></label>
+      <label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="hydration_assess" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label>
+    </div><div class="item-text">Assesses hydration status (mucous membranes, skin turgor)</div></div>
+  </div>
+</div>
+
+<div class="section" id="sec-notes">
+  <button type="button" class="section-header" aria-expanded="true" onclick="toggleSection(this)">
+    <span class="section-title">Evaluation Notes</span>
+    <span class="toggle-icon">▾</span>
+  </button>
+  <div class="section-content">
+    <div class="notes">
+      <div class="field"><label for="sbar_notes">SBAR Communication</label><textarea id="sbar_notes" placeholder="Document SBAR communication effectiveness..."></textarea></div>
+      <div class="field"><label for="collaboration_notes">Collaboration</label><textarea id="collaboration_notes" placeholder="Note teamwork and collaboration skills..."></textarea></div>
+      <div class="field"><label for="critical_thinking_notes">Critical Thinking</label><textarea id="critical_thinking_notes" placeholder="Observe critical thinking and clinical reasoning..."></textarea></div>
+      <div class="field"><label for="clinical_judgment_notes">Clinical Judgment</label><textarea id="clinical_judgment_notes" placeholder="Evaluate clinical judgment and decision making..."></textarea></div>
+      <div class="field"><label for="additional_notes">Additional Notes</label><textarea id="additional_notes" placeholder="Any other observations or feedback..."></textarea></div>
+    </div>
+  </div>
+</div>

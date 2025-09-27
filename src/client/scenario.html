@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="theme-color" content="#667eea" />
+  <title id="pageTitle">NURS 10L Scenario</title>
+  <link rel="stylesheet" href="css/scenario.css" />
+  <script src="socket.io/socket.io.js"></script>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1 id="scenarioTitle">NURS 10L Scenario</h1>
+      <p id="scenarioSubtitle">Loading scenario…</p>
+      <div class="connection-status" id="connectionStatus">🔄 Connecting...</div>
+      <div class="session-mode" id="sessionMode" style="display: none;"></div>
+      <div class="progress-bar"><div id="progressFill" class="progress-fill"></div></div>
+    </div>
+
+    <div class="toolbar" id="toolbar">
+      <button type="button" class="btn btn-secondary" id="expandAll">Expand all</button>
+      <button type="button" class="btn btn-secondary" id="collapseAll">Collapse all</button>
+      <button type="button" class="btn btn-secondary" id="resetForm">Reset form</button>
+      <button type="button" class="btn btn-secondary" id="recallEvaluationBtn" style="display: none;">Recall Last Submission</button>
+      <button type="button" class="btn btn-secondary" id="switchStudent">Switch / Logout</button>
+
+      <div class="speech-controls">
+        <button type="button" class="speech-btn speech-btn-start" id="speechStartBtn">🎤 Start Assessment Recording</button>
+        <button type="button" class="speech-btn speech-btn-stop" id="speechStopBtn" style="display:none;">⏹️ Stop Recording</button>
+        <button type="button" class="speech-btn" id="speechSaveBtn" style="background:#059669;color:#fff;display:none;">💾 Save Transcript</button>
+        <button type="button" class="speech-btn" id="speechSubmitBtn" style="background:#0284c7;color:#fff;display:none;">📤 Submit Final Assessment</button>
+        <div class="speech-status">
+          <div class="recording-dot" id="recordingDot"></div>
+          <span id="speechStatusText">Ready to begin assessment</span>
+        </div>
+      </div>
+
+      <button type="button" class="btn btn-success" id="submitEvaluation" style="background: var(--ok);">Submit Evaluation</button>
+    </div>
+
+    <div class="speech-transcript" id="speechTranscript">
+      <div class="transcript-final" id="transcriptFinal"></div>
+      <div class="transcript-interim" id="transcriptInterim"></div>
+    </div>
+    <div class="speech-error" id="speechError"></div>
+
+    <form id="evaluationForm">
+      <div class="student-info" id="studentInfo">
+        <div class="field">
+          <label for="studentName">Student Being Evaluated 🔒</label>
+          <input id="studentName" name="studentName" type="text" required readonly />
+          <small class="field-help" id="studentNameHelp">Locked to logged-in user</small>
+        </div>
+        <div class="field">
+          <label for="evaluatorName">Evaluator Name</label>
+          <input id="evaluatorName" name="evaluatorName" type="text" required placeholder="Your full name" />
+        </div>
+        <div class="field">
+          <label for="evaluationDate">Date</label>
+          <input id="evaluationDate" name="evaluationDate" type="date" required />
+        </div>
+        <div class="field">
+          <label for="scenarioTime">Scenario Time / Context</label>
+          <input id="scenarioTime" name="scenarioTime" type="text" />
+        </div>
+      </div>
+
+      <div id="scenarioContent"></div>
+    </form>
+
+  <footer class="scorebar" id="scorebar">
+    <div><strong>Completed:</strong> <span id="completedScore" class="pill primary">0 / 0</span></div>
+    <div><strong>Failed:</strong> <span id="failedScore" class="pill fail">0</span></div>
+    <div><strong>Critical Fails:</strong> <span id="criticalFailedScore" class="pill fail">0</span></div>
+    <div><strong>Score:</strong> <span id="overallScore" class="pill score">0%</span></div>
+    <div style="text-align:right; color: var(--muted-2); font-size: .9rem;">Progress auto-saves locally</div>
+  </footer>
+  </div>
+
+  <div class="guided-toast" id="guidedToast" style="display:none;">
+    <button type="button" class="guided-close" id="guidedClose">✕</button>
+    <div class="guided-progress" id="guidedProgress"></div>
+    <div class="guided-item-text" id="guidedItemText"></div>
+    <div class="guided-actions" id="guidedActions"></div>
+  </div>
+
+  <div id="loginModal" style="
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.8);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  ">
+    <div style="
+      background: white;
+      padding: 24px;
+      border-radius: 12px;
+      max-width: 420px;
+      width: 92%;
+      box-shadow: 0 14px 45px rgba(0,0,0,0.25);
+      position: relative;
+    ">
+      <h2 style="margin-top:0; text-align:center; color: var(--primary);">Student Check-In</h2>
+      <p style="text-align:center; color: var(--muted); margin-bottom: 20px;">
+        Please sign in with your student name and password to begin the evaluation.
+      </p>
+      <form id="loginForm">
+        <div style="margin-bottom: 16px; text-align:left;">
+          <label for="loginStudentName" style="display:block; margin-bottom:6px; font-weight:600;">Student Name:</label>
+          <input type="text" id="loginStudentName" required placeholder="Enter your full name" style="
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+          " />
+        </div>
+        <div style="margin-bottom: 20px; text-align:left;">
+          <label for="loginPassword" style="display:block; margin-bottom:6px; font-weight:600;">Password:</label>
+          <input type="password" id="loginPassword" required placeholder="Enter institutional password" style="
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+          " />
+          <small style="color: var(--muted); font-size: 12px; margin-top: 5px; display: block;">
+            🔒 Use your institutional password
+          </small>
+        </div>
+        <button type="submit" style="
+          width: 100%;
+          padding: 12px;
+          background: var(--primary);
+          color: white;
+          border: none;
+          border-radius: 8px;
+          font-size: 16px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: background-color 0.3s;
+        ">Start Evaluation</button>
+      </form>
+      <div id="loginError" style="
+        color: var(--fail);
+        text-align: center;
+        margin-top: 15px;
+        display: none;
+        font-size: 14px;
+      "></div>
+    </div>
+  </div>
+
+  <div id="connectionStatus" style="display:none;"></div>
+
+  <script src="js/speech-to-text.js"></script>
+  <script type="module" src="js/scenario-loader.js"></script>
+</body>
+</html>

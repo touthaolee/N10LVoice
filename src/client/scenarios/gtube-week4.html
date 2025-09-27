@@ -1,0 +1,218 @@
+<div class="scenario-summary">
+  <h3>Patient Case Summary</h3>
+  <div class="patient-info">
+    <strong>Patient:</strong> Shannon Shaw, 74 years old<br />
+    <strong>Diagnosis:</strong> Malnutrition, Dysphagia, Dementia<br />
+    <strong>History:</strong> Right total hip replacement 6 months ago, significant weight loss, G-tube placement<br />
+    <strong>Status:</strong> Frail, pale, lethargic, PEG tube infusing Jevity Plus @ 75 mL/hr<br />
+    <strong>Vitals:</strong> HT: 5'3", Wt: 97 lbs, BMI < 18<br />
+    <strong>Risk Factors:</strong> High aspiration risk, dry eye condition<br />
+    <strong>Current Labs:</strong> K=4.0, Na=130, Mg=2.8, Phosphorus=3.0, Cl=105, Albumin=2.5, Residual=20ml
+  </div>
+</div>
+
+<!-- SBAR Handoff & G-Tube Assessment Section -->
+<div class="section" id="sec-sbar">
+  <button type="button" class="section-header" aria-expanded="true" onclick="toggleSection(this)">
+    <span class="section-title">SBAR Communication</span>
+    <span class="section-meta" data-count="sec-sbar"></span>
+    <span class="toggle-icon">▾</span>
+  </button>
+  <div class="section-content">
+    <h4 style="margin:0 0 6px; color: var(--muted);">S = SITUATION</h4>
+    <div class="checklist-item">
+      <div class="checkbox-container">
+        <label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="sbar_admission_report" data-critical="true" /><span class="checkbox-label pass">✓ PASS</span></label>
+        <label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="sbar_admission_report" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label>
+      </div>
+      <div class="item-text">Admission Report: Shannon Shaw is a 74-year old female client admitted with significant weight loss, secondary to a right total hip replacement following a hip fracture 6 months ago<span class="critical-badge">CRITICAL</span></div>
+    </div>
+    <div class="checklist-item">
+      <div class="checkbox-container">
+        <label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="sbar_gtube_dysphagia" data-critical="true" /><span class="checkbox-label pass">✓ PASS</span></label>
+        <label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="sbar_gtube_dysphagia" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label>
+      </div>
+      <div class="item-text">States: Unable to consume enough calories to maintain weight, G-tube placed, dysphagia with high aspiration risk<span class="critical-badge">CRITICAL</span></div>
+    </div>
+    <div class="checklist-item">
+      <div class="checkbox-container">
+        <label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="sbar_dry_eye" /><span class="checkbox-label pass">✓ PASS</span></label>
+        <label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="sbar_dry_eye" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label>
+      </div>
+      <div class="item-text">States: Suffering from "dry eye" with lubricating eye drops ordered twice a day</div>
+    </div>
+
+    <h4 style="margin:20px 0 6px; color: var(--muted);">B = BACKGROUND</h4>
+    <div class="checklist-item">
+      <div class="checkbox-container">
+        <label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="sbar_pmh" /><span class="checkbox-label pass">✓ PASS</span></label>
+        <label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="sbar_pmh" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label>
+      </div>
+      <div class="item-text">PMH: CVA, aspiration pneumonia and confusion</div>
+    </div>
+    
+    <h4 style="margin:20px 0 6px; color: var(--muted);">A = ASSESSMENT</h4>
+    <div class="checklist-item">
+      <div class="checkbox-container">
+        <label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="sbar_clinical_signs" data-critical="true" /><span class="checkbox-label pass">✓ PASS</span></label>
+        <label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="sbar_clinical_signs" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label>
+      </div>
+      <div class="item-text">Visible clinical signs: Frail, pale, lethargic, PEG tube infusing Jevity Plus @ 75 mL/hr<span class="critical-badge">CRITICAL</span></div>
+    </div>
+
+    <h4 style="margin:20px 0 6px; color: var(--muted);">R = RECOMMENDATIONS</h4>
+    <div class="checklist-item">
+      <div class="checkbox-container">
+        <label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="sbar_recommendations" /><span class="checkbox-label pass">✓ PASS</span></label>
+        <label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="sbar_recommendations" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label>
+      </div>
+      <div class="item-text">States appropriate recommendations, review, requests for G-tube care and monitoring</div>
+    </div>
+  </div>
+</div>
+
+<!-- Standard Protocol - Beginning -->
+<div class="section" id="sec-begin">
+  <button type="button" class="section-header" aria-expanded="true" onclick="toggleSection(this)">
+    <span class="section-title">Standard Protocol - Beginning</span>
+    <span class="section-meta" data-count="sec-begin"></span>
+    <span class="toggle-icon">▾</span>
+  </button>
+  <div class="section-content">
+    <div class="checklist-item">
+      <div class="checkbox-container">
+        <label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="verify_orders" data-critical="true" /><span class="checkbox-label pass">✓ PASS</span></label>
+        <label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="verify_orders" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label>
+      </div>
+      <div class="item-text">Verifies physician's orders (must review orders on chart at bedside)<span class="critical-badge">CRITICAL</span></div>
+    </div>
+    <div class="checklist-item">
+      <div class="checkbox-container">
+        <label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="hand_hygiene_main" data-critical="true" /><span class="checkbox-label pass">✓ PASS</span></label>
+        <label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="hand_hygiene_main" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label>
+      </div>
+      <div class="item-text">Performs hand hygiene – Gel in gel out<span class="critical-badge">CRITICAL</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- 6 Rights and 3 Checks of Medication Administration -->
+<div class="section" id="sec-med-rights">
+  <button type="button" class="section-header" aria-expanded="true" onclick="toggleSection(this)">
+    <span class="section-title">6 Rights and 3 Checks of Medication Administration</span>
+    <span class="section-meta" data-count="sec-med-rights"></span>
+    <span class="toggle-icon">▾</span>
+  </button>
+  <div class="section-content">
+    <div class="checklist-item">
+      <div class="checkbox-container">
+        <label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="right_patient" data-critical="true" /><span class="checkbox-label pass">✓ PASS</span></label>
+        <label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="right_patient" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label>
+      </div>
+      <div class="item-text">Right Patient (verifies patient identification)<span class="critical-badge">CRITICAL</span></div>
+    </div>
+    <div class="checklist-item">
+      <div class="checkbox-container">
+        <label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="right_drug" data-critical="true" /><span class="checkbox-label pass">✓ PASS</span></label>
+        <label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="right_drug" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label>
+      </div>
+      <div class="item-text">Right Drug (verifies medication name and formula)<span class="critical-badge">CRITICAL</span></div>
+    </div>
+    <div class="checklist-item">
+      <div class="checkbox-container">
+        <label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="check_3_administration" data-critical="true" /><span class="checkbox-label pass">✓ PASS</span></label>
+        <label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="check_3_administration" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label>
+      </div>
+      <div class="item-text">3rd Check: Before administering to patient<span class="critical-badge">CRITICAL</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- GT Reglan Administration -->
+<div class="section" id="sec-reglan">
+  <button type="button" class="section-header" aria-expanded="true" onclick="toggleSection(this)">
+    <span class="section-title">GT Reglan Administration</span>
+    <span class="section-meta" data-count="sec-reglan"></span>
+    <span class="toggle-icon">▾</span>
+  </button>
+  <div class="section-content">
+    <div class="checklist-item">
+      <div class="checkbox-container">
+        <label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="verify_reglan_order" data-critical="true" /><span class="checkbox-label pass">✓ PASS</span></label>
+        <label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="verify_reglan_order" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label>
+      </div>
+      <div class="item-text">Verifies Reglan order: 10mg via G-tube every 6 hours before meals<span class="critical-badge">CRITICAL</span></div>
+    </div>
+    <div class="checklist-item">
+      <div class="checkbox-container">
+        <label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="check_gtube_placement" data-critical="true" /><span class="checkbox-label pass">✓ PASS</span></label>
+        <label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="check_gtube_placement" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label>
+      </div>
+      <div class="item-text">Checks G-tube placement and patency<span class="critical-badge">CRITICAL</span></div>
+    </div>
+    <div class="checklist-item">
+      <div class="checkbox-container">
+        <label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="document_reglan_admin" data-critical="true" /><span class="checkbox-label pass">✓ PASS</span></label>
+        <label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="document_reglan_admin" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label>
+      </div>
+      <div class="item-text">Documents Reglan administration in MAR<span class="critical-badge">CRITICAL</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- Jevity Plus Feeding Administration -->
+<div class="section" id="sec-jevity-feeding">
+  <button type="button" class="section-header" aria-expanded="true" onclick="toggleSection(this)">
+    <span class="section-title">Jevity Plus Feeding Administration</span>
+    <span class="section-meta" data-count="sec-jevity-feeding"></span>
+    <span class="toggle-icon">▾</span>
+  </button>
+  <div class="section-content">
+    <div class="checklist-item">
+      <div class="checkbox-container">
+        <label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="verify_feeding_order" data-critical="true" /><span class="checkbox-label pass">✓ PASS</span></label>
+        <label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="verify_feeding_order" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label>
+      </div>
+      <div class="item-text">Verifies Jevity Plus feeding order and rate<span class="critical-badge">CRITICAL</span></div>
+    </div>
+    <div class="checklist-item">
+      <div class="checkbox-container">
+        <label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="position_feeding" data-critical="true" /><span class="checkbox-label pass">✓ PASS</span></label>
+        <label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="position_feeding" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label>
+      </div>
+      <div class="item-text">Positions patient with HOB elevated 30-45 degrees<span class="critical-badge">CRITICAL</span></div>
+    </div>
+    <div class="checklist-item">
+      <div class="checkbox-container">
+        <label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="document_feeding" data-critical="true" /><span class="checkbox-label pass">✓ PASS</span></label>
+        <label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="document_feeding" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label>
+      </div>
+      <div class="item-text">Documents feeding administration and patient response<span class="critical-badge">CRITICAL</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- Standard Protocol - Ending -->
+<div class="section" id="sec-ending">
+  <button type="button" class="section-header" aria-expanded="true" onclick="toggleSection(this)">
+    <span class="section-title">Standard Protocol - Ending</span>
+    <span class="section-meta" data-count="sec-ending"></span>
+    <span class="toggle-icon">▾</span>
+  </button>
+  <div class="section-content">
+    <div class="checklist-item">
+      <div class="checkbox-container">
+        <label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="final_hand_hygiene" data-critical="true" /><span class="checkbox-label pass">✓ PASS</span></label>
+        <label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="final_hand_hygiene" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label>
+      </div>
+      <div class="item-text">Performs hand hygiene - Gel in gel out<span class="critical-badge">CRITICAL</span></div>
+    </div>
+    <div class="checklist-item">
+      <div class="checkbox-container">
+        <label class="checkbox-group"><input type="checkbox" class="checkbox pass" data-key="rails_bed_low" data-critical="true" /><span class="checkbox-label pass">✓ PASS</span></label>
+        <label class="checkbox-group"><input type="checkbox" class="checkbox fail" data-key="rails_bed_low" data-fail /><span class="checkbox-label fail">✗ FAIL</span></label>
+      </div>
+      <div class="item-text">Raise side rails and lower bed to lowest position<span class="critical-badge">CRITICAL</span></div>
+    </div>
+  </div>
+</div>

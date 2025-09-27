@@ -1,794 +1,55 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <meta name="theme-color" content="#667eea" />
-  <title>NURS 10L - Week 2 Vital Signs Assessment</title>
-  <script src="/N10L/socket.io/socket.io.js"></script>
-  <style>
-    :root {
-      --bg: #f5f7fa;
-      --card: #ffffff;
-      --muted: #4a5568;
-      --muted-2: #718096;
-      --primary: #667eea;
-      --primary-2: #5a67d8;
-      --accent: #764ba2;
-      --pass: #48bb78;
-      --fail: #e53e3e;
-      --ok: #38a169;
-      --warn: #d69e2e;
-      --border: #e2e8f0;
-    }
-
-    * { box-sizing: border-box; }
-    /* Mobile-first readable base font size; scales slightly with viewport */
-    html { font-size: clamp(18px, 5vw, 20px); }
-    html, body { height: 100%; }
-    body {
-      margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', Arial, sans-serif;
-      background: var(--bg);
-      color: #2d3748;
-      line-height: 1.6;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-      padding: 10px;
-      -webkit-text-size-adjust: 100%;
-      -webkit-tap-highlight-color: rgba(0,0,0,0);
-      touch-action: manipulation;
-    }
-
-    .container {
-      max-width: 920px;
-      margin: 0 auto;
-      background: var(--card);
-      border-radius: 14px;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      min-height: calc(100vh - 20px);
-    }
-
-    .header {
-      background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
-      color: #fff;
-      padding: 18px 20px 14px;
-      text-align: center;
-    }
-  .header h1 { margin: 0 0 6px; font-size: clamp(1.4rem, 5.5vw, 1.85rem); font-weight: 700; }
-  .header p { margin: 0; opacity: 0.95; font-size: 1rem; }
-
-  .progress-bar { height: 10px; background: rgba(255,255,255,0.25); border-radius: 6px; overflow: hidden; margin-top: 12px; }
-    .progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #fff 0%, #d6d6ff 100%); transition: width .25s ease; }
-
-    .toolbar {
-      display: flex;
-      gap: 10px;
-      padding: 12px 16px;
-      border-bottom: 1px solid var(--border);
-      flex-wrap: wrap;
-      background: #fafbff;
-    }
-    .btn {
-      padding: 14px 16px;
-      border: 0;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 1.05rem;
-      cursor: pointer;
-      transition: background .2s ease, transform .05s ease;
-      min-height: 48px;
-    }
-    .btn:active { transform: translateY(1px); }
-    .btn-primary { background: var(--primary); color: white; }
-    .btn-primary:hover { background: var(--primary-2); }
-    .btn-secondary { background: #e2e8f0; color: var(--muted); }
-    .btn-secondary:hover { background: #cbd5e0; }
-
-    /* Speech-to-Text Controls */
-    .speech-controls {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 12px;
-      background: #f0f9ff;
-      border-radius: 8px;
-      border: 1px solid #bae6fd;
-      flex: 1;
-      min-width: 350px;
-      flex-wrap: wrap;
-    }
-    
-    .speech-btn {
-      padding: 8px 12px;
-      border: 0;
-      border-radius: 6px;
-      font-weight: 600;
-      font-size: 0.9rem;
-      cursor: pointer;
-      transition: all .2s ease;
-      min-height: 36px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    
-    .speech-btn-start { background: #10b981; color: white; }
-    .speech-btn-start:hover { background: #059669; }
-    .speech-btn-stop { background: #ef4444; color: white; }
-    .speech-btn-stop:hover { background: #dc2626; }
-    .speech-btn:disabled { background: #9ca3af; cursor: not-allowed; }
-    
-    .speech-status {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.85rem;
-      color: #374151;
-      flex: 1;
-    }
-    
-    .recording-dot {
-      width: 8px;
-      height: 8px;
-      background: #ef4444;
-      border-radius: 50%;
-      animation: pulse 1.5s infinite;
-      display: none;
-    }
-    
-    .recording-dot.active { display: block; }
-    
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.3; }
-    }
-    
-    .speech-transcript {
-      margin-top: 12px;
-      padding: 12px;
-      background: white;
-      border: 1px solid #d1d5db;
-      border-radius: 8px;
-      max-height: 120px;
-      overflow-y: auto;
-      font-size: 0.9rem;
-      line-height: 1.4;
-      display: none;
-    }
-    
-    .speech-transcript.visible { display: block; }
-    
-    .transcript-final { color: #1f2937; }
-    .transcript-interim { color: #6b7280; font-style: italic; }
-    
-    .speech-error {
-      color: #ef4444;
-      font-size: 0.8rem;
-      margin-top: 4px;
-      display: none;
-    }
-    
-    .speech-error.visible { display: block; }
-
-    form { display: block; width: 100%; }
-
-    .section {
-      border-bottom: 1px solid var(--border);
-    }
-    .section:last-of-type { border-bottom: 0; }
-
-    .section-header {
-      width: 100%;
-      text-align: left;
-      padding: 14px 16px;
-      background: #f7fafc;
-      border: 0;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      cursor: pointer;
-      gap: 10px;
-      min-height: 48px;
-    }
-  .section-title { margin: 0; font-size: 1.2rem; font-weight: 700; color: #2d3748; }
-  .section-meta { color: var(--muted-2); font-size: 1rem; margin-left: auto; margin-right: 10px; }
-    .toggle-icon { font-size: 1.05rem; opacity: .8; }
-
-    .section-content { padding: 16px; display: block; }
-    .section.collapsed .section-content { display: none; }
-
-    .student-info {
-      padding: 16px;
-      background: #f8f9ff;
-      border-bottom: 1px solid var(--border);
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 12px;
-    }
-    .field label { display: block; font-weight: 600; color: var(--muted); margin-bottom: 6px; font-size: 1rem; }
-    .field input, .field textarea {
-      width: 100%; padding: 12px 14px; border: 2px solid var(--border); border-radius: 10px; font-size: 1.1rem; background: white; min-height: 48px;
-    }
-    .field input:focus, .field textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(102,126,234,.15); }
-
-    .scenario-summary { padding: 16px; background: #fff7db; border-left: 4px solid #f6c343; }
-    .scenario-summary h3 { margin: 0 0 8px; color: #7a5d00; }
-    .patient-info { background: #fff; padding: 12px; border: 1px solid #fde3a7; border-radius: 8px; }
-
-    .checklist-item {
-      display: flex;
-      gap: 12px;
-      align-items: flex-start;
-      padding: 12px;
-      margin-bottom: 10px;
-      background: #f8f9ff;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-    }
-  .checkbox-container { display: flex; flex-direction: column; gap: 8px; min-width: 120px; }
-  .checkbox-group { display: inline-flex; align-items: center; gap: 8px; }
-  .checkbox { width: 26px; height: 26px; cursor: pointer; }
-    .checkbox.pass { accent-color: var(--pass); }
-    .checkbox.fail { accent-color: var(--fail); }
-  .checkbox-label { font-size: 1rem; font-weight: 700; user-select: none; }
-    .checkbox-label.pass { color: #2f855a; }
-    .checkbox-label.fail { color: #c53030; }
-  .item-text { flex: 1; font-size: 1.1rem; }
-    .checklist-item.checked { background: #f2fff6; border-color: #bdebcf; }
-    .checklist-item.failed  { background: #fff5f5; border-color: #f9b3b3; }
-
-    .notes {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 12px;
-      padding: 0 16px 16px;
-    }
-  .notes textarea { min-height: 130px; resize: vertical; }
-
-    .scorebar {
-      margin-top: auto;
-      position: sticky; bottom: 0; background: #fff; border-top: 1px solid var(--border);
-      padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); display: grid; grid-template-columns: repeat(3, auto) 1fr; gap: 12px; align-items: center;
-    }
-  .pill { padding: 8px 14px; border-radius: 999px; color: #fff; font-weight: 800; font-size: 1.1rem; }
-    .pill.primary { background: var(--primary); }
-    .pill.fail { background: var(--fail); }
-    .pill.score { background: var(--fail); }
-
-    /* Critical element indicator */
-    .critical-badge {
-      display: inline-block;
-      background: #e53e3e;
-      color: #fff;
-      font-size: .55rem;
-      padding: 3px 6px 2px;
-      border-radius: 6px;
-      margin-left: 8px;
-      letter-spacing: .5px;
-      font-weight: 700;
-      box-shadow: 0 0 0 1px rgba(229,62,62,0.4), 0 2px 4px rgba(229,62,62,0.35);
-      position: relative;
-      top: -1px;
-      white-space: nowrap;
-    }
-    .checklist-item.failed .critical-badge { background:#9b2c2c; }
-
-  /* Guided correction highlight */
-  .incomplete-focus { position: relative; box-shadow: 0 0 0 3px #f59e0b, 0 0 0 6px rgba(245,158,11,0.35); animation: pulseRing 1.2s ease-in-out infinite; }
-  @keyframes pulseRing { 0% { box-shadow: 0 0 0 3px #f59e0b, 0 0 0 6px rgba(245,158,11,0.35);} 50% { box-shadow: 0 0 0 3px #f59e0b, 0 0 0 10px rgba(245,158,11,0.08);} 100% { box-shadow: 0 0 0 3px #f59e0b, 0 0 0 6px rgba(245,158,11,0.35);} }
-  .guided-toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: 18px; width: min(680px, 92%); background: #1a1f29; color:#fff; padding: 18px 20px 16px; border-radius: 16px; box-shadow: 0 14px 42px -8px rgba(0,0,0,0.45), 0 4px 18px rgba(0,0,0,0.4); z-index: 1100; font-size: .95rem; display:flex; flex-direction:column; gap:14px; }
-  .guided-toast h4 { margin:0; font-size:1.05rem; font-weight:700; }
-  .guided-progress { font-size:.8rem; letter-spacing:.5px; opacity:.85; }
-  .guided-item-text { background:#222b38; padding:12px 14px; border-radius:10px; max-height:110px; overflow:auto; line-height:1.3; font-size:.95rem; }
-  .guided-actions { display:flex; flex-wrap:wrap; gap:10px; }
-  .guided-btn { flex:1 1 auto; padding:12px 14px; border:none; border-radius:10px; font-weight:600; cursor:pointer; font-size:.9rem; display:flex; align-items:center; justify-content:center; gap:6px; }
-  .guided-btn.pass { background:#16a34a; color:#fff; }
-  .guided-btn.pass:hover { background:#15803d; }
-  .guided-btn.fail { background:#dc2626; color:#fff; }
-  .guided-btn.fail:hover { background:#b91c1c; }
-  .guided-btn.next { background:#334155; color:#e2e8f0; }
-  .guided-btn.next:hover { background:#1e293b; }
-  .guided-btn.submit { background: linear-gradient(90deg,#6366f1,#8b5cf6); color:#fff; }
-  .guided-btn.submit[disabled] { background:#475569; cursor:not-allowed; opacity:.6; }
-  .guided-close { position:absolute; top:8px; right:10px; background:none; border:none; color:#94a3b8; font-size:18px; cursor:pointer; }
-  .guided-close:hover { color:#fff; }
-
-    /* Small-screen optimizations (iPhone 12 ~390px width) */
-    @media (max-width: 480px) {
-      body { padding: 8px; }
-      .container { border-radius: 12px; }
-      .toolbar { gap: 8px; padding: 10px 12px; }
-      .btn { flex: 1 1 auto; min-width: 44%; font-size: 1.1rem; min-height: 50px; }
-      .section-header { min-height: 52px; }
-      .section-title { font-size: 1.25rem; }
-      .section-meta { font-size: 1.05rem; }
-      .section-content { padding: 14px; }
-      .checklist-item { flex-direction: column; gap: 10px; }
-      .checkbox-container { flex-direction: row; align-items: center; min-width: auto; }
-      .checkbox-group { gap: 10px; }
-      .checkbox { width: 28px; height: 28px; }
-      .checkbox-label { font-size: 1.05rem; }
-      .item-text { font-size: 1.15rem; }
-      .notes textarea { min-height: 150px; }
-      /* Compact responsive score bar */
-      .scorebar { 
-        display: flex; 
-        flex-wrap: wrap; 
-        gap: 6px 10px; 
-        padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
-      }
-      .scorebar > div { 
-        flex: 1 1 48%; 
-        display: flex; 
-        align-items: center; 
-        gap: 4px;
-        font-size: .85rem;
-      }
-      .scorebar > div:last-child { flex: 1 1 100%; order: 4; text-align: left !important; font-size: .7rem; }
-      .pill { 
-        font-size: .85rem; 
-        padding: 6px 10px; 
-        font-weight: 700;
-        line-height: 1.1;
-        min-width: 0;
-      }
-      .header h1 { font-size: 1.35rem; }
-      html { font-size: clamp(16px, 4.8vw, 18px); }
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1>NURS 10L - Vital Signs Assessment</h1>
-      <p>Week 2 Comprehensive Evaluation - Vital Signs & Assessment Skills</p>
-      <div class="progress-bar"><div id="progressFill" class="progress-fill"></div></div>
-    </div>
-
-    <div class="toolbar">
-      <button type="button" class="btn btn-secondary" id="expandAll">Expand all</button>
-      <button type="button" class="btn btn-secondary" id="collapseAll">Collapse all</button>
-      <button type="button" class="btn btn-secondary" id="resetForm">Reset form</button>
-  <button type="button" class="btn btn-secondary" id="switchStudent">Switch / Logout</button>
-      
-      <!-- Speech-to-Text Controls -->
-      <div class="speech-controls">
-        <button type="button" class="speech-btn speech-btn-start" id="speechStartBtn">
-          🎤 Start Assessment Recording
-        </button>
-        <button type="button" class="speech-btn speech-btn-stop" id="speechStopBtn" style="display: none;">
-          ⏹️ Stop Recording
-        </button>
-        <button type="button" class="speech-btn" id="speechSaveBtn" style="background: #059669; color: white; display: none;">
-          💾 Save Transcript
-        </button>
-        <button type="button" class="speech-btn" id="speechSubmitBtn" style="background: #0284c7; color: white; display: none;">
-          📤 Submit Final Assessment
-        </button>
-        <div class="speech-status">
-          <div class="recording-dot" id="recordingDot"></div>
-          <span id="speechStatusText">Ready to begin assessment</span>
-        </div>
-      </div>
-      
-      <button type="button" class="btn btn-success" id="submitEvaluation" style="background: var(--ok);">Submit Evaluation</button>
-    </div>
-
-    <!-- Speech Transcript Display -->
-    <div class="speech-transcript" id="speechTranscript">
-      <div class="transcript-final" id="transcriptFinal"></div>
-      <div class="transcript-interim" id="transcriptInterim"></div>
-    </div>
-    <div class="speech-error" id="speechError"></div>
-
-    <form id="evaluationForm">
-      <div class="student-info">
-        <div class="field">
-          <label for="studentName">Student Being Evaluated 🔒</label>
-          <input id="studentName" name="studentName" type="text" required readonly style="background-color: #f8f9fa; color: #495057; border: 2px solid #28a745; font-weight: bold;" />
-          <small style="color: #28a745; font-size: 0.8em; margin-top: 4px; display: block;">✓ Locked to logged-in user</small>
-        </div>
-        <div class="field">
-          <label for="evaluatorName">Evaluator Name</label>
-          <input id="evaluatorName" name="evaluatorName" type="text" required />
-        </div>
-        <div class="field">
-          <label for="evaluationDate">Date</label>
-          <input id="evaluationDate" name="evaluationDate" type="date" required />
-        </div>
-        <div class="field">
-          <label for="scenarioTime">Scenario Time</label>
-          <input id="scenarioTime" name="scenarioTime" type="text" value="0700 (Breakfast at 0730)" />
-        </div>
-      </div>
-
-      <div class="scenario-summary">
-        <h3>Vital Signs Assessment Scenario</h3>
-        <div class="patient-info">
-          <strong>Assessment Focus:</strong> Comprehensive vital signs monitoring and assessment<br />
-          <strong>Skills Evaluated:</strong> Temperature, Blood Pressure, Pulse (Radial/Apical), Respirations, Pain Assessment, Blood Glucose<br />
-          <strong>Clinical Setting:</strong> Medical-Surgical Unit<br />
-          <strong>Documentation:</strong> Complete vital signs record with accurate measurements<br />
-          <strong>Priority:</strong> Oxygenation assessment and physiological stability monitoring<br />
-          <strong>Equipment:</strong> Thermometer, BP cuff, stethoscope, pulse oximeter, glucometer
-        </div>
-      </div>
-
-      <!-- Dynamic sections will be populated here by JavaScript -->
-      <div id="dynamicSections"></div>
-      
-      <div class="section" id="sec-notes">
-        <button type="button" class="section-header" aria-expanded="true" onclick="toggleSection(this)">
-          <span class="section-title">Evaluation Notes</span>
-          <span class="toggle-icon">▾</span>
-        </button>
-        <div class="section-content">
-          <div class="notes">
-            <div class="field"><label for="sbar_notes">SBAR Communication</label><textarea id="sbar_notes" placeholder="Document SBAR communication effectiveness..."></textarea></div>
-            <div class="field"><label for="collaboration_notes">Collaboration</label><textarea id="collaboration_notes" placeholder="Note teamwork and collaboration skills..."></textarea></div>
-            <div class="field"><label for="critical_thinking_notes">Critical Thinking</label><textarea id="critical_thinking_notes" placeholder="Observe critical thinking and clinical reasoning..."></textarea></div>
-            <div class="field"><label for="clinical_judgment_notes">Clinical Judgment</label><textarea id="clinical_judgment_notes" placeholder="Evaluate clinical judgment and decision making..."></textarea></div>
-            <div class="field"><label for="additional_notes">Additional Notes</label><textarea id="additional_notes" placeholder="Any other observations or feedback..."></textarea></div>
-          </div>
-        </div>
-      </div>
-    </form>
-
-    <div class="scorebar">
-      <div><strong>Completed:</strong> <span id="completedScore" class="pill primary">0 / 0</span></div>
-      <div><strong>Failed:</strong> <span id="failedScore" class="pill fail">0</span></div>
-      <div><strong>Critical Fails:</strong> <span id="criticalFailedScore" class="pill fail">0</span></div>
-      <div><strong>Score:</strong> <span id="overallScore" class="pill score">0%</span></div>
-      <div style="text-align:right; color: var(--muted-2); font-size: .9rem;">Progress auto-saves locally</div>
-    </div>
-  </div>
-
-    <!-- Guided correction toast mount point -->
-    <div id="guidedToastRoot" aria-live="assertive" style="z-index:1100;"></div>
-
-  <!-- Login Modal -->
-  <div id="loginModal" style="
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.8);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-  ">
-    <div style="
-      background: white;
-      padding: 30px;
-      border-radius: 15px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-      max-width: 400px;
-      width: 90%;
-    ">
-      <h2 style="text-align: center; color: var(--primary); margin-bottom: 20px;">
-        🏥 Student Sign-In
-      </h2>
-      <p style="text-align: center; color: var(--muted); margin-bottom: 25px;">
-        Enter your full name and use the default password to access the evaluation
-      </p>
-      <form id="loginForm">
-        <div style="margin-bottom: 20px;">
-          <label for="loginStudentName" style="display: block; margin-bottom: 8px; font-weight: 600;">Student Name:</label>
-          <input type="text" id="loginStudentName" required style="
-            width: 100%;
-            padding: 12px;
-            border: 2px solid var(--border);
-            border-radius: 8px;
-            font-size: 16px;
-            transition: border-color 0.3s;
-          " placeholder="Enter your full name">
-        </div>
-        <div style="margin-bottom: 20px;">
-          <label for="loginPassword" style="display: block; margin-bottom: 8px; font-weight: 600;">Password:</label>
-          <input type="password" id="loginPassword" required placeholder="Enter institutional password" style="
-            width: 100%;
-            padding: 12px;
-            border: 2px solid var(--border);
-            border-radius: 8px;
-            font-size: 16px;
-            transition: border-color 0.3s;
-          ">
-          <small style="color: var(--muted); font-size: 12px; margin-top: 5px; display: block;">
-            🔒 Use your institutional password
-          </small>
-        </div>
-        <button type="submit" style="
-          width: 100%;
-          padding: 12px;
-          background: var(--primary);
-          color: white;
-          border: none;
-          border-radius: 8px;
-          font-size: 16px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: background-color 0.3s;
-        ">Start Evaluation</button>
-      </form>
-      <div id="loginError" style="
-        color: var(--fail);
-        text-align: center;
-        margin-top: 15px;
-        display: none;
-        font-size: 14px;
-      "></div>
-    </div>
-  </div>
-
-  <!-- Connection Status -->
-  <div id="connectionStatus" style="
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    padding: 8px 15px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 600;
-    z-index: 999;
-    display: none;
-  "></div>
-
-  <!-- Speech-to-Text Module -->
-  <script src="js/speech-to-text.js"></script>
-  
-  <script>
-    // VITAL SIGNS CHECKLIST DATA
-    const CHECKLIST_SECTIONS = [
-      {
-        id: 'sec-standard-beginning',
-        title: 'Standard Protocol - Beginning',
-        items: [
-          { key: 'verify_orders', text: 'Verifies physician\'s orders (review orders on chart at bedside)', critical: true },
-          { key: 'gather_equipment', text: 'Gathers own equipment/supplies' },
-          { key: 'hand_hygiene_main', text: 'Performs hand hygiene', critical: true },
-          { key: 'hh_warm_water', text: 'Warm water (must state)' },
-          { key: 'hh_wet_hands', text: 'Wet hands' },
-          { key: 'hh_soap', text: '1 tsp soap (approximate)' },
-          { key: 'hh_circular', text: 'Rub hands in circular motion 5x' },
-          { key: 'hh_hands_down', text: 'Hands pointed down' },
-          { key: 'hh_clean_nails', text: 'Clean fingernails' },
-          { key: 'hh_rinse', text: 'Rinse' },
-          { key: 'hh_20s', text: 'Washing takes place over 20 seconds' },
-          { key: 'hh_dry', text: 'Dry fingers to wrist' },
-          { key: 'hh_paper_towel', text: 'If hand controls, use dry paper towel to shut off water (must state)' }
-        ]
-      },
-      {
-        id: 'sec-standard-during',
-        title: 'Standard Protocol - During',
-        items: [
-          { key: 'identify_client', text: 'Identifies client (check ID bracelet and ask name/DOB)', critical: true },
-          { key: 'introduce_self', text: 'Introduces self and explains plan' },
-          { key: 'identify_teaching', text: 'Identifies teaching needed; describes what client can expect' },
-          { key: 'assess_appropriateness', text: 'Assesses if intervention is still appropriate' },
-          { key: 'adjust_bed', text: 'Adjusts bed height; lowers nearest side rail' },
-          { key: 'lighting', text: 'Provides adequate lighting' },
-          { key: 'privacy', text: 'Provides privacy (pull curtain)' }
-        ]
-      },
-      {
-        id: 'sec-priority-oxygen',
-        title: 'Priority Oxygenation Assessment',
-        items: [
-          { key: 'oxygen_assessment', text: 'Assesses oxygenation status before vital signs', critical: true },
-          { key: 'respiratory_distress', text: 'Observes for signs of respiratory distress' },
-          { key: 'airway_patency', text: 'Evaluates airway patency' },
-          { key: 'oxygen_saturation', text: 'Checks oxygen saturation if indicated' }
-        ]
-      },
-      {
-        id: 'sec-temperature',
-        title: 'Temperature Assessment',
-        items: [
-          { key: 'temp_method_choice', text: 'Selects appropriate temperature method (oral, axillary, etc.)' },
-          { key: 'temp_equipment_prep', text: 'Prepares thermometer appropriately' },
-          { key: 'temp_positioning', text: 'Positions client correctly for temperature measurement' },
-          { key: 'temp_measurement', text: 'Obtains accurate temperature measurement', critical: true },
-          { key: 'temp_documentation', text: 'Documents temperature with method used' },
-          { key: 'temp_normal_range', text: 'Recognizes normal vs abnormal temperature ranges' }
-        ]
-      },
-      {
-        id: 'sec-blood-pressure',
-        title: 'Blood Pressure Assessment',
-        items: [
-          { key: 'bp_cuff_size', text: 'Selects appropriate cuff size', critical: true },
-          { key: 'bp_arm_position', text: 'Positions arm at heart level' },
-          { key: 'bp_cuff_placement', text: 'Places cuff 2-3 cm above antecubital fossa' },
-          { key: 'bp_stethoscope_placement', text: 'Places stethoscope over brachial artery' },
-          { key: 'bp_inflation', text: 'Inflates cuff 20-30 mmHg above palpated systolic' },
-          { key: 'bp_deflation_rate', text: 'Deflates cuff at 2-3 mmHg per second' },
-          { key: 'bp_korotkoff_sounds', text: 'Identifies Korotkoff sounds correctly', critical: true },
-          { key: 'bp_documentation', text: 'Documents blood pressure accurately' },
-          { key: 'bp_normal_range', text: 'Recognizes normal vs abnormal blood pressure ranges' }
-        ]
-      },
-      {
-        id: 'sec-radial-pulse',
-        title: 'Radial Pulse Assessment',
-        items: [
-          { key: 'radial_location', text: 'Locates radial pulse correctly' },
-          { key: 'radial_palpation', text: 'Uses appropriate finger pads for palpation' },
-          { key: 'radial_count_15', text: 'Counts pulse for 15 seconds (if regular) or 60 seconds (if irregular)' },
-          { key: 'radial_rate_calculation', text: 'Calculates rate accurately', critical: true },
-          { key: 'radial_rhythm_assessment', text: 'Assesses rhythm (regular/irregular)' },
-          { key: 'radial_quality_assessment', text: 'Assesses quality (weak, strong, bounding)' },
-          { key: 'radial_documentation', text: 'Documents pulse rate, rhythm, and quality' }
-        ]
-      },
-      {
-        id: 'sec-apical-pulse',
-        title: 'Apical Pulse Assessment',
-        items: [
-          { key: 'apical_positioning', text: 'Positions client appropriately for apical pulse' },
-          { key: 'apical_location', text: 'Locates apical pulse at 5th intercostal space, midclavicular line', critical: true },
-          { key: 'apical_stethoscope', text: 'Uses stethoscope correctly' },
-          { key: 'apical_count_60', text: 'Counts apical pulse for full 60 seconds', critical: true },
-          { key: 'apical_rate_calculation', text: 'Calculates rate accurately' },
-          { key: 'apical_rhythm_assessment', text: 'Assesses rhythm and identifies irregularities' },
-          { key: 'apical_documentation', text: 'Documents apical pulse findings' }
-        ]
-      },
-      {
-        id: 'sec-respiratory-rate',
-        title: 'Respiratory Rate Assessment',
-        items: [
-          { key: 'resp_observation', text: 'Observes respirations without client awareness' },
-          { key: 'resp_positioning', text: 'Positions client appropriately for observation' },
-          { key: 'resp_count_30', text: 'Counts respirations for 30-60 seconds' },
-          { key: 'resp_rate_calculation', text: 'Calculates respiratory rate accurately', critical: true },
-          { key: 'resp_pattern_assessment', text: 'Assesses respiratory pattern and effort' },
-          { key: 'resp_depth_assessment', text: 'Evaluates depth of respirations' },
-          { key: 'resp_documentation', text: 'Documents respiratory rate, pattern, and quality' }
-        ]
-      },
-      {
-        id: 'sec-pain-assessment',
-        title: 'Pain Assessment (PQRSTU)',
-        items: [
-          { key: 'pain_provocation', text: 'P - Provocation/Palliation: What makes it better/worse?' },
-          { key: 'pain_quality', text: 'Q - Quality: What does it feel like?' },
-          { key: 'pain_region', text: 'R - Region/Radiation: Where is it? Does it spread?' },
-          { key: 'pain_severity', text: 'S - Severity: Rate 0-10 scale', critical: true },
-          { key: 'pain_timing', text: 'T - Timing: When did it start? Constant/intermittent?' },
-          { key: 'pain_understanding', text: 'U - Understanding: What do you think caused this?' },
-          { key: 'pain_documentation', text: 'Documents complete pain assessment' }
-        ]
-      },
-      {
-        id: 'sec-documentation',
-        title: 'Documentation',
-        items: [
-          { key: 'doc_accuracy', text: 'Documents all vital signs accurately', critical: true },
-          { key: 'doc_completeness', text: 'Includes all required components' },
-          { key: 'doc_timeliness', text: 'Documents in timely manner' },
-          { key: 'doc_abnormal_notify', text: 'Identifies need to notify provider of abnormal findings' },
-          { key: 'doc_trends', text: 'Recognizes trends in vital sign patterns' }
-        ]
-      },
-      {
-        id: 'sec-blood-glucose',
-        title: 'Blood Glucose Monitoring',
-        items: [
-          { key: 'bg_hand_hygiene', text: 'Performs hand hygiene before procedure', critical: true },
-          { key: 'bg_equipment_prep', text: 'Prepares glucometer and test strips' },
-          { key: 'bg_site_selection', text: 'Selects appropriate finger stick site' },
-          { key: 'bg_site_cleaning', text: 'Cleans site with alcohol and allows to dry' },
-          { key: 'bg_lancet_use', text: 'Uses sterile lancet for puncture' },
-          { key: 'bg_sample_collection', text: 'Obtains adequate blood sample' },
-          { key: 'bg_result_reading', text: 'Reads and interprets results accurately', critical: true },
-          { key: 'bg_disposal', text: 'Disposes of sharps and contaminated materials safely' },
-          { key: 'bg_documentation', text: 'Documents blood glucose level' }
-        ]
-      },
-      {
-        id: 'sec-head-face-oral',
-        title: 'Physical Assessment: Head, Face, Oral',
-        items: [
-          { key: 'head_symmetry', text: 'Head: symmetry, masses, tenderness, inspect scalp for lesions and hair and scalp for presence of lice and/or nits' },
-          { key: 'hair_assessment', text: 'Hair: Color, thick/fine, straight/curly, distribution' },
-          { key: 'face_symmetry', text: 'Face: symmetry' },
-          { key: 'teeth_assessment', text: 'Teeth: Present/missing, condition, color, plaque, dentures/bridges, breath odor' },
-          { key: 'mucous_membranes', text: 'Mucous membranes/gums: Moist/dry/cracked, pink/pale' }
-        ]
-      },
-      {
-        id: 'sec-skin-hair-nails',
-        title: 'Physical Assessment: Skin, Hair, Nails',
-        items: [
-          { key: 'skin_tone', text: 'Skin tone/variations: pink, pale, ruddy, light/dark tan/brown, olive tones, jaundice, cyanosis, hypo/hyperpigmented areas' },
-          { key: 'temp_character', text: 'Temperature/character: Warm/cool, dry/clammy' },
-          { key: 'skin_texture', text: 'Texture: Smooth firm with even surfaces' },
-          { key: 'skin_thickness', text: 'Thickness: Epidermis uniform with increased thickness to soles/palms' },
-          { key: 'edema_assess', text: 'Edema: Name location and grade from None - 4+' },
-          { key: 'skin_turgor', text: 'Turgor: Tenting x # of sec or none' },
-          { key: 'vascularity', text: 'Vascularity: Bruising/tattoos' },
-          { key: 'lesions_moles', text: 'Lesions/Moles/Scars: Color, elevation, pattern or shape, size in cm, location/distribution, exudates, and type of lesion noted' },
-          { key: 'pressure_signs', text: 'Presence of pressure signs: redness, loss of superficial skin layers' },
-          { key: 'nails_assess', text: 'Nails: Thin/thick, pink/yellow, smooth/uneven, 160 degree or less contour, capillary refill immediate or # of seconds' }
-        ]
-      },
-      {
-        id: 'sec-sbar-handoff',
-        title: 'SBAR Handoff Communication',
-        items: [
-          { key: 'sbar_situation', text: 'S - Situation: States current situation clearly and concisely', critical: true },
-          { key: 'sbar_background', text: 'B - Background: Provides relevant background information' },
-          { key: 'sbar_assessment', text: 'A - Assessment: Shares assessment findings and vital signs', critical: true },
-          { key: 'sbar_recommendation', text: 'R - Recommendation: Makes appropriate recommendations or requests' },
-          { key: 'sbar_communication', text: 'Uses clear, professional communication throughout' }
-        ]
-      }
-    ];
-
-    // Build dynamic sections function
-    function buildSections() {
-      const dynamicContainer = document.getElementById('dynamicSections');
-      if (!dynamicContainer) {
-        console.error('Dynamic sections container not found');
-        return;
-      }
-
-      CHECKLIST_SECTIONS.forEach(section => {
-        const sectionHtml = `
-          <div class="section" id="${section.id}">
-            <button type="button" class="section-header" aria-expanded="true" onclick="toggleSection(this)">
-              <span class="section-title">${section.title}</span>
-              <span class="section-meta" data-count="${section.id}"></span>
-              <span class="toggle-icon">▾</span>
-            </button>
-            <div class="section-content">
-              ${section.items.map(item => `
-                <div class="checklist-item">
-                  <div class="checkbox-container">
-                    <label class="checkbox-group">
-                      <input type="checkbox" class="checkbox pass" data-key="${item.key}"${item.critical ? ' data-critical="true"' : ''} />
-                      <span class="checkbox-label pass">✓ PASS</span>
-                    </label>
-                    <label class="checkbox-group">
-                      <input type="checkbox" class="checkbox fail" data-key="${item.key}" data-fail />
-                      <span class="checkbox-label fail">✗ FAIL</span>
-                    </label>
-                  </div>
-                  <div class="item-text">
-                    ${item.text}${item.critical ? '<span class="critical-badge">CRITICAL</span>' : ''}
-                  </div>
-                </div>
-              `).join('')}
-            </div>
-          </div>
-        `;
-        dynamicContainer.insertAdjacentHTML('beforeend', sectionHtml);
-      });
-
-      // Initialize section meta counts after building
-      updateSectionMetas();
-    }
-
-    // Call buildSections when the page loads
-    document.addEventListener('DOMContentLoaded', function() {
-      buildSections();
-    });
-    
-    // MAIN APPLICATION SCRIPT
-    // Subpath support when served behind Traefik at /N10LVoice
+export default function setupMedicationWeek3Scenario() {
+// Subpath support when served behind Traefik at /N10LVoice
     const BASE_PATH = location.pathname.toLowerCase().startsWith('/n10lvoice/') ? '/N10LVoice' : '';
     const API_BASE = `${BASE_PATH}/api`;
     const SOCKET_PATH = `${BASE_PATH}/socket.io`;
+
+    const defaultScenarioField = document.getElementById('scenarioTime');
+    const defaultEvaluationDateField = document.getElementById('evaluationDate');
+    const DEFAULT_SCENARIO_TIME = defaultScenarioField ? defaultScenarioField.value : '0900 (Medication pass)';
+    const DEFAULT_EVALUATION_DATE = defaultEvaluationDateField ? defaultEvaluationDateField.value : new Date().toISOString().split('T')[0];
+
+    const LAST_EVALUATION_PREFIX = 'medWeek3LastEvaluation_';
+
+    function getLastEvaluationStorageKey() {
+      if (!studentName) return null;
+      return `${LAST_EVALUATION_PREFIX}${studentName}`;
+    }
+
+    function saveLastEvaluationSnapshot(snapshot) {
+      try {
+        const key = getLastEvaluationStorageKey();
+        if (!key) return;
+        localStorage.setItem(key, JSON.stringify(snapshot));
+      } catch (error) {
+        console.error('Failed to save last evaluation snapshot:', error);
+      }
+    }
+
+    function loadLastEvaluationSnapshot() {
+      try {
+        const key = getLastEvaluationStorageKey();
+        if (!key) return null;
+        const raw = localStorage.getItem(key);
+        if (!raw) return null;
+        return JSON.parse(raw);
+      } catch (error) {
+        console.warn('Failed to load last evaluation snapshot:', error);
+        return null;
+      }
+    }
+
+    function updateRecallButtonVisibility() {
+      const btn = document.getElementById('recallEvaluationBtn');
+      if (!btn) return;
+      const key = getLastEvaluationStorageKey();
+      const hasSnapshot = key && localStorage.getItem(key);
+      btn.style.display = hasSnapshot ? 'inline-flex' : 'none';
+      btn.disabled = !hasSnapshot;
+      if (hasSnapshot) {
+        btn.setAttribute('aria-label', 'Recall your most recent submission for review');
+      }
+    }
 
     // Utilities
     const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
@@ -810,7 +71,7 @@
       const formData = {
         evaluatorName: document.getElementById('evaluatorName')?.value || '',
         scenarioTime: document.getElementById('scenarioTime')?.value || '',
-        additionalNotes: document.getElementById('additionalNotes')?.value || '',
+        additionalNotes: document.getElementById('additional_notes')?.value || '',
         checkboxStates: {},
         timestamp: Date.now()
       };
@@ -850,7 +111,7 @@
         }
         
         if (formData.additionalNotes) {
-          const field = document.getElementById('additionalNotes');
+          const field = document.getElementById('additional_notes');
           if (field) field.value = formData.additionalNotes;
         }
         
@@ -884,6 +145,7 @@
             connectSocket();
             // Restore any saved form state after connecting
             setTimeout(restoreFormState, 1000);
+            updateRecallButtonVisibility();
             return;
           }
         } catch (error) {
@@ -895,6 +157,7 @@
         localStorage.removeItem('studentName');
         sessionId = null;
         studentName = null;
+        updateRecallButtonVisibility();
       }
       
       showLoginModal();
@@ -964,19 +227,25 @@
     function connectSocket() {
       if (!studentName || !sessionId) return;
       
-      // Configure Socket.IO with reconnection settings
+      console.log('🔌 Establishing robust student socket connection...');
+      
+      // Configure Socket.IO with enhanced reconnection settings
       socket = io({ 
         path: SOCKET_PATH, 
         auth: { sessionId: sessionId },
+        timeout: 20000,
         reconnection: true,
         reconnectionAttempts: maxReconnectAttempts,
-        reconnectionDelay: 1000,
-        reconnectionDelayMax: 5000,
-        timeout: 10000
+        reconnectionDelay: 2000,
+        reconnectionDelayMax: 10000,
+        maxReconnectionAttempts: maxReconnectAttempts,
+        randomizationFactor: 0.5,
+        forceNew: false
       });
 
       socket.on('connect', () => {
-        console.log('Connected to evaluation server');
+        console.log('✅ Connected to evaluation server');
+        console.log('🔗 Socket ID:', socket.id);
         updateConnectionStatus('connected');
         reconnectAttempts = 0;
         clearInterval(reconnectInterval);
@@ -1006,11 +275,15 @@
         if (reconnectAttempts > 0) {
           showSuccess('✅ Reconnected successfully! Your progress is preserved.');
         }
+        
+        // Start connection health monitoring
+        startStudentConnectionHealthMonitoring();
       });
 
       socket.on('disconnect', (reason) => {
-        console.log('Disconnected from server:', reason);
+        console.log('❌ Disconnected from server:', reason);
         updateConnectionStatus('disconnected');
+        stopStudentConnectionHealthMonitoring();
         
         // Only attempt reconnection if it wasn't a manual disconnect
         if (!isManualDisconnect && reason !== 'io client disconnect') {
@@ -1041,6 +314,18 @@
             startReconnectionProcess();
           }
         }
+      });
+
+      // Add ping/pong for connection health monitoring
+      socket.on('pong', (data) => {
+        const pingTime = Date.now() - lastStudentPingTime;
+        console.log(`🏓 Student pong received, latency: ${pingTime}ms`);
+        updateConnectionStatus('connected');
+      });
+
+      socket.on('connect_timeout', () => {
+        console.error('❌ Student socket connection timeout');
+        updateConnectionStatus('timeout');
       });
     }
 
@@ -1101,7 +386,9 @@
       studentName = null;
       evaluationStartTime = null;
       reconnectAttempts = 0;
-      
+      resetAssessmentState({ preserveStudentInfo: false, preserveSpeechTranscript: false, silent: true });
+      updateRecallButtonVisibility();
+
       if (socket) {
         socket.disconnect();
         socket = null;
@@ -1147,8 +434,8 @@
         score: score,
         items: items,
         timestamp: new Date().toISOString(),
-        courseWeekId: 2,
-        scenarioTitle: 'Week 2 - Vital Signs Assessment'
+        courseWeekId: 3,
+        scenarioTitle: 'Week 3 - Medication Administration'
       });
     }
 
@@ -1421,9 +708,14 @@
       const score = getCurrentScore();
       const items = getCurrentItems();
       const notes = {
-        additionalNotes: document.getElementById('additionalNotes')?.value || '',
+        additionalNotes: document.getElementById('additional_notes')?.value || '',
         evaluatorName: document.getElementById('evaluatorName')?.value || '',
-        scenarioTime: document.getElementById('scenarioTime')?.value || ''
+        scenarioTime: document.getElementById('scenarioTime')?.value || '',
+        evaluationDate: document.getElementById('evaluationDate')?.value || '',
+        sbar_notes: document.getElementById('sbar_notes')?.value || '',
+        collaboration_notes: document.getElementById('collaboration_notes')?.value || '',
+        critical_thinking_notes: document.getElementById('critical_thinking_notes')?.value || '',
+        clinical_judgment_notes: document.getElementById('clinical_judgment_notes')?.value || ''
       };
 
       // Check for duplicate evaluations first (unless forcing overwrite)
@@ -1431,14 +723,14 @@
         try {
           console.log('🔍 Checking for duplicate evaluation for:', studentName);
           console.log('🌐 API Base URL:', API_BASE);
-          console.log('📝 Request payload:', { studentName: studentName, courseWeekId: 2 });
+          console.log('📝 Request payload:', { studentName: studentName, courseWeekId: 3 });
           
           const duplicateResponse = await fetch(`${API_BASE}/evaluations/check-duplicate`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
               studentName: studentName, 
-              courseWeekId: 2 
+              courseWeekId: 3 
             })
           });
           
@@ -1459,7 +751,7 @@
             
             const overwrite = confirm(
               `⚠️ DUPLICATE EVALUATION DETECTED\n\n` +
-              `Student "${studentName}" already has an evaluation for Personal Care:\n\n` +
+              `Student "${studentName}" already has an evaluation for Medication Administration:\n\n` +
               `• Previous Score: ${existing.score}%\n` +
               `• Completed: ${existingDate} at ${existingTime}\n\n` +
               `Do you want to OVERWRITE the previous evaluation?\n\n` +
@@ -1489,8 +781,8 @@
       console.log('📡 Emitting evaluation-complete with overwrite:', forceOverwrite);
       
       socket.emit('evaluation-complete', {
-        courseWeekId: 2, // Week 2 - Vital Signs Assessment
-        courseName: 'Vital Signs Assessment',
+        courseWeekId: 3, // Week 3 - Medication Administration Evaluation
+        courseName: 'Medication Administration Evaluation',
         score: score,
         items: items,
         notes: notes,
@@ -1503,8 +795,21 @@
 
       // Clear auto-saved form state after successful submission
       localStorage.removeItem('evaluationFormState');
-      
+      const snapshot = {
+        timestamp: Date.now(),
+        studentName,
+        courseWeekId: 3,
+        score,
+        notes,
+        items
+      };
+      saveLastEvaluationSnapshot(snapshot);
+      updateRecallButtonVisibility();
+
       alert(`Evaluation completed!\nScore: ${score.percent}% (${score.passed}/${score.total})`);
+
+      resetAssessmentState({ preserveStudentInfo: true, preserveSpeechTranscript: false, silent: true });
+      showSuccess('Submission recorded. Workspace reset for the next assessment.');
     }
 
     // Login form handler
@@ -1521,45 +826,39 @@
         if (!response.ok) throw new Error(data.error || 'Login failed');
         if (data.sessionId && data.studentName) {
           // Clear previous student's data BEFORE overwriting localStorage
-          clearWeek1ProgressForNewStudent(data.studentName);
+          clearWeek3ProgressForNewStudent(data.studentName);
           studentName = data.studentName;
           sessionId = data.sessionId;
           localStorage.setItem('studentName', data.studentName);
-            localStorage.setItem('studentSession', data.sessionId);
-          localStorage.setItem('sessionExpires', data.expiresAt);
-          hideLoginModal();
-          connectSocket();
-        } else {
-          throw new Error('Login failed - no session created');
-        }
+          localStorage.setItem('studentSession', data.sessionId);
+        localStorage.setItem('sessionExpires', data.expiresAt);
+        hideLoginModal();
+        connectSocket();
+        updateRecallButtonVisibility();
+      } else {
+        throw new Error('Login failed - no session created');
+      }
       } catch (error) {
         showError(error.message || 'Failed to sign in');
       }
     });
 
     // --- New Student Login Clearing Logic ---
-    function clearWeek1ProgressForNewStudent(newName){
+    function clearWeek3ProgressForNewStudent(newName){
       const prev = localStorage.getItem('studentName');
       if(prev && prev.trim().toLowerCase() !== newName.trim().toLowerCase()){
-        // Remove stored states relevant to Week 1 / Personal Care
-        localStorage.removeItem('n10l_peer_eval_state');
+        // Remove stored states relevant to Week 3 / Medication Administration
+        localStorage.removeItem('n10l_med_eval_state');
         localStorage.removeItem('evaluationFormState');
-        // Reset checklist UI
-        $$('.checklist-item').forEach(ci=>{
-          ci.classList.remove('checked','failed');
-          ci.querySelectorAll('input[type="checkbox"]').forEach(c=> c.checked = false);
-        });
-        // Clear evaluator name (studentName stays locked to new login)
-        const evaluatorField = document.getElementById('evaluatorName');
-        if(evaluatorField) evaluatorField.value='';
-        updateCounts();
+        resetAssessmentState({ preserveStudentInfo: true, preserveSpeechTranscript: true, silent: true });
         showSuccess('Previous student data cleared');
+        updateRecallButtonVisibility();
       }
     }
 
   // Removed delayed clearing listener – clearing now handled synchronously in login handler.
 
-    // --- Switch Student / Logout Feature (Week 1) ---
+    // --- Switch Student / Logout Feature (Week 3) ---
     function switchStudent(){
       if(!confirm('Switch student? This will clear current progress.')) return;
       try { if(socket) socket.disconnect(); } catch(e){}
@@ -1567,16 +866,15 @@
       localStorage.removeItem('studentSession');
       localStorage.removeItem('studentName');
       // Clear week-specific stored state
-      localStorage.removeItem('n10l_peer_eval_state');
+      localStorage.removeItem('n10l_med_eval_state');
       localStorage.removeItem('evaluationFormState');
       // Reset in‑memory vars
       sessionId=null; studentName=null; evaluationStartTime=null;
-      // Clear UI selections
-      $$('.checklist-item').forEach(ci=>{ ci.classList.remove('checked','failed'); ci.querySelectorAll('input[type="checkbox"]').forEach(c=> c.checked=false); });
-      const evalField=$('#evaluatorName'); if(evalField) evalField.value='';
+      resetAssessmentState({ preserveStudentInfo: false, preserveSpeechTranscript: false, silent: true });
       // Show login modal again
       if(typeof showLoginModal==='function') showLoginModal(); else document.getElementById('loginModal').style.display='flex';
       showSuccess('Student session cleared. Ready for new login.');
+      updateRecallButtonVisibility();
     }
     // Attach listener after DOM ready if button exists
     document.addEventListener('DOMContentLoaded',()=>{ const btn=document.getElementById('switchStudent'); if(btn) btn.addEventListener('click',switchStudent); });
@@ -1624,6 +922,175 @@
       sendProgressUpdate();
     }
 
+    function clearSpeechInterface() {
+      const hasSpeech = typeof speechToText !== 'undefined' && speechToText;
+      if (hasSpeech && speechToText.isRecognizing) {
+        try { stopSpeechRecognition(); } catch (error) {
+          console.debug('Speech stop (ignore if not recording):', error?.message || error);
+        }
+      }
+      if (hasSpeech && typeof speechToText.clear === 'function') {
+        speechToText.clear();
+      }
+      const finalTranscriptEl = document.getElementById('transcriptFinal');
+      const interimTranscriptEl = document.getElementById('transcriptInterim');
+      if (finalTranscriptEl) finalTranscriptEl.textContent = '';
+      if (interimTranscriptEl) interimTranscriptEl.textContent = '';
+      const statusTextEl = document.getElementById('speechStatusText');
+      if (statusTextEl) statusTextEl.textContent = 'Ready to begin assessment';
+      const recordingDot = document.getElementById('recordingDot');
+      if (recordingDot) recordingDot.classList.remove('active');
+      if (typeof updateSpeechUI === 'function') {
+        updateSpeechUI(false);
+      } else {
+        const startBtn = document.getElementById('speechStartBtn');
+        const stopBtn = document.getElementById('speechStopBtn');
+        const saveBtn = document.getElementById('speechSaveBtn');
+        const submitBtn = document.getElementById('speechSubmitBtn');
+        if (startBtn) startBtn.style.display = 'flex';
+        if (stopBtn) stopBtn.style.display = 'none';
+        if (saveBtn) saveBtn.style.display = 'none';
+        if (submitBtn) submitBtn.style.display = 'none';
+      }
+    }
+
+    function resetAssessmentState(options = {}) {
+      const {
+        preserveStudentInfo = true,
+        preserveSpeechTranscript = false,
+        silent = false
+      } = options;
+
+      $$('.checklist-item').forEach(item => {
+        item.classList.remove('checked', 'failed');
+        const pass = item.querySelector('input.checkbox.pass');
+        const fail = item.querySelector('input.checkbox.fail');
+        if (pass) pass.checked = false;
+        if (fail) fail.checked = false;
+      });
+
+      const noteFields = [
+        'sbar_notes',
+        'collaboration_notes',
+        'critical_thinking_notes',
+        'clinical_judgment_notes',
+        'additional_notes'
+      ];
+      noteFields.forEach(id => {
+        const field = document.getElementById(id);
+        if (field) field.value = '';
+      });
+
+      const evaluatorField = document.getElementById('evaluatorName');
+      if (evaluatorField) evaluatorField.value = '';
+
+      const scenarioField = document.getElementById('scenarioTime');
+      if (scenarioField) scenarioField.value = DEFAULT_SCENARIO_TIME;
+
+      const dateField = document.getElementById('evaluationDate');
+      if (dateField) {
+        dateField.value = DEFAULT_EVALUATION_DATE;
+      }
+
+      localStorage.removeItem('evaluationFormState');
+      localStorage.removeItem('n10l_med_eval_state');
+
+      guidedQueue = [];
+      guidedIndex = 0;
+      guidedActive = false;
+      clearGuidedFocus();
+
+      updateCounts();
+
+      if (!preserveSpeechTranscript) {
+        clearSpeechInterface();
+      }
+
+      assessmentSessionId = null;
+      speechSegmentCount = 0;
+
+      if (!silent) {
+        showSuccess('Assessment reset. Ready for a new attempt.');
+      }
+
+      if (!preserveStudentInfo) {
+        const studentField = document.getElementById('studentName');
+        if (studentField) studentField.value = '';
+      }
+    }
+
+    function applyEvaluationSnapshot(snapshot) {
+      if (!snapshot || !Array.isArray(snapshot.items)) {
+        showError('No saved submission found to recall.');
+        updateRecallButtonVisibility();
+        return;
+      }
+
+      resetAssessmentState({ preserveStudentInfo: true, preserveSpeechTranscript: true, silent: true });
+
+      const itemsByKey = new Map(snapshot.items.map(item => [item.key, item]));
+
+      $$('.section').forEach(section => {
+        const sectionName = section.querySelector('.section-title')?.textContent?.trim() || 'Unknown Section';
+        let sequence = 0;
+        $$('.checklist-item', section).forEach(checklistItem => {
+          const key = `${sectionName.toLowerCase().replace(/\s+/g, '_')}_${sequence++}`;
+          const saved = itemsByKey.get(key);
+
+          const passCheckbox = checklistItem.querySelector('input.checkbox.pass[type="checkbox"]');
+          const failCheckbox = checklistItem.querySelector('input.checkbox.fail[type="checkbox"]');
+
+          if (passCheckbox) passCheckbox.checked = false;
+          if (failCheckbox) failCheckbox.checked = false;
+          checklistItem.classList.remove('checked', 'failed');
+
+          if (!saved) return;
+          const status = saved.status || (saved.checked ? 'pass' : saved.failed ? 'fail' : 'not_completed');
+          if (status === 'pass' && passCheckbox) {
+            passCheckbox.checked = true;
+            checklistItem.classList.add('checked');
+          } else if (status === 'fail' && failCheckbox) {
+            failCheckbox.checked = true;
+            checklistItem.classList.add('failed');
+          }
+        });
+      });
+
+      const notes = snapshot.notes || {};
+      const noteFieldMap = {
+        evaluatorName: notes.evaluatorName || '',
+        scenarioTime: notes.scenarioTime || DEFAULT_SCENARIO_TIME,
+        evaluationDate: notes.evaluationDate || DEFAULT_EVALUATION_DATE,
+        sbar_notes: notes.sbar_notes || '',
+        collaboration_notes: notes.collaboration_notes || '',
+        critical_thinking_notes: notes.critical_thinking_notes || '',
+        clinical_judgment_notes: notes.clinical_judgment_notes || '',
+        additional_notes: notes.additional_notes || ''
+      };
+
+      Object.entries(noteFieldMap).forEach(([id, value]) => {
+        const field = document.getElementById(id);
+        if (field) field.value = value;
+      });
+
+      updateCounts();
+
+      showSuccess('Last submission recalled. You may review or make adjustments before resubmitting.');
+    }
+
+    function recallLastEvaluation() {
+      const snapshot = loadLastEvaluationSnapshot();
+      if (!snapshot) {
+        showError('No saved submission found to recall.');
+        updateRecallButtonVisibility();
+        return;
+      }
+      applyEvaluationSnapshot(snapshot);
+    }
+
+    window.resetAssessmentState = resetAssessmentState;
+    window.recallLastEvaluation = recallLastEvaluation;
+
     function handleToggle(e) {
       const input = e.target;
       if (!(input instanceof HTMLInputElement)) return;
@@ -1654,11 +1121,10 @@
 
     function resetFormHard() {
       if (!confirm('Reset the entire form? This cannot be undone.')) return;
-      $('#evaluationForm').reset();
-      $$('.checklist-item').forEach(i => i.classList.remove('checked','failed'));
-      // Clear local storage state
-      localStorage.removeItem('n10l_peer_eval_state');
-      updateCounts();
+      resetAssessmentState({ preserveStudentInfo: true, preserveSpeechTranscript: false, silent: true });
+      localStorage.removeItem('n10l_med_eval_state');
+      showSuccess('Form reset. You can begin the assessment again.');
+      updateRecallButtonVisibility();
     }
 
     function saveState() {
@@ -1681,11 +1147,11 @@
           return { key, checked: item.classList.contains('checked'), failed: item.classList.contains('failed') };
         })
       };
-      localStorage.setItem('n10l_peer_eval_state', JSON.stringify(state));
+      localStorage.setItem('n10l_med_eval_state', JSON.stringify(state));
     }
 
     function loadState() {
-      const raw = localStorage.getItem('n10l_peer_eval_state');
+      const raw = localStorage.getItem('n10l_med_eval_state');
       if (!raw) return;
       try {
         const state = JSON.parse(raw);
@@ -1908,7 +1374,7 @@
       const sessionData = {
         sessionId: assessmentSessionId, // Use persistent assessment session ID
         studentName: document.getElementById('studentName')?.value || 'Unknown',
-        courseId: 1, // PersonalCare course
+        courseId: 3, // Medication Administration course
         segmentNumber: speechSegmentCount,
         segmentStartTime: new Date()
       };
@@ -2048,6 +1514,59 @@
       }
     }
 
+    // Student Connection Health Monitoring
+    let studentHealthTimer = null;
+    let lastStudentPingTime = null;
+    const STUDENT_PING_INTERVAL = 30000; // 30 seconds
+    const STUDENT_PING_TIMEOUT = 10000; // 10 seconds
+
+    function startStudentConnectionHealthMonitoring() {
+      stopStudentConnectionHealthMonitoring(); // Clear any existing timer
+      
+      studentHealthTimer = setInterval(() => {
+        if (socket && socket.connected) {
+          sendStudentPing();
+        } else {
+          console.warn('⚠️ Student socket not connected during health check');
+          updateConnectionStatus('disconnected');
+          
+          // Attempt reconnection
+          if (reconnectAttempts < maxReconnectAttempts) {
+            reconnectAttempts++;
+            console.log(`🔄 Student health check reconnection attempt ${reconnectAttempts}`);
+            connectSocket();
+          }
+        }
+      }, STUDENT_PING_INTERVAL);
+    }
+
+    function stopStudentConnectionHealthMonitoring() {
+      if (studentHealthTimer) {
+        clearInterval(studentHealthTimer);
+        studentHealthTimer = null;
+      }
+    }
+
+    function sendStudentPing() {
+      if (socket && socket.connected) {
+        lastStudentPingTime = Date.now();
+        socket.emit('ping', { 
+          timestamp: lastStudentPingTime, 
+          type: 'student-health-check',
+          studentName: studentName,
+          sessionId: sessionId
+        });
+        
+        // Set timeout to detect ping failures
+        setTimeout(() => {
+          if (lastStudentPingTime && (Date.now() - lastStudentPingTime) > STUDENT_PING_TIMEOUT) {
+            console.warn('⚠️ Student ping timeout - connection may be unstable');
+            updateConnectionStatus('unstable');
+          }
+        }, STUDENT_PING_TIMEOUT);
+      }
+    }
+
     function showSpeechError(message) {
       const errorDiv = document.getElementById('speechError');
       if (errorDiv) {
@@ -2062,43 +1581,45 @@
     }
 
     // Init
-    document.addEventListener('DOMContentLoaded', () => {
-      // Pre-fill date to today if empty
-      const today = new Date().toISOString().slice(0,10);
-      const dateEl = $('#evaluationDate');
-      if (!dateEl.value) dateEl.value = today;
+    const initializeScenario = () => {
+      if (!$('#evaluationDate').value) $('#evaluationDate').value = DEFAULT_EVALUATION_DATE;
+      if (!$('#scenarioTime').value) $('#scenarioTime').value = DEFAULT_SCENARIO_TIME;
 
-      // Load saved state (if any)
       loadState();
+      const recallBtn = document.getElementById('recallEvaluationBtn');
+      if (recallBtn) {
+        recallBtn.addEventListener('click', recallLastEvaluation);
+      }
+      updateRecallButtonVisibility();
 
-      // Listeners
       document.body.addEventListener('change', handleToggle);
-      $('#resetForm').addEventListener('click', resetFormHard);
-      $('#submitEvaluation').addEventListener('click', (e) => {
+      const resetBtn = $('#resetForm');
+      if (resetBtn) resetBtn.addEventListener('click', resetFormHard);
+      const submitBtn = $('#submitEvaluation');
+      if (submitBtn) submitBtn.addEventListener('click', (e) => {
         console.log('🔘 Submit button clicked');
         e.preventDefault();
         guardedSubmit();
       });
-      $('#expandAll').addEventListener('click', () => $$('.section').forEach(s => { s.classList.remove('collapsed'); $('.section-header', s)?.setAttribute('aria-expanded','true'); }));
-      $('#collapseAll').addEventListener('click', () => $$('.section').forEach(s => { s.classList.add('collapsed'); $('.section-header', s)?.setAttribute('aria-expanded','false'); }));
+      const expandBtn = $('#expandAll');
+      if (expandBtn) expandBtn.addEventListener('click', () => $$('.section').forEach(s => { s.classList.remove('collapsed'); $('.section-header', s)?.setAttribute('aria-expanded','true'); }));
+      const collapseBtn = $('#collapseAll');
+      if (collapseBtn) collapseBtn.addEventListener('click', () => $$('.section').forEach(s => { s.classList.add('collapsed'); $('.section-header', s)?.setAttribute('aria-expanded','false'); }));
 
-      // Update counts initially and on typing for notes/fields
       updateCounts();
       $$('input, textarea').forEach(el => el.addEventListener('input', () => { 
         saveState(); 
-        saveFormState(); // Auto-save for disconnection recovery
+        saveFormState();
       }));
-      
-      // Auto-save on checkbox changes
       $$('input[type="checkbox"]').forEach(el => el.addEventListener('change', () => {
         saveFormState();
       }));
-      
-      // Auto-save every 30 seconds
+
       setInterval(saveFormState, 30000);
-      
-      // Note: Speech-to-Text will be initialized after socket connection
-    });
-  </script>
-</body>
-</html>
+    };
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initializeScenario, { once: true });
+    } else {
+      initializeScenario();
+    }
+}

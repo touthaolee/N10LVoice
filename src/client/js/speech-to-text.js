@@ -46,12 +46,9 @@ class SpeechToText {
         this.reconnectionAttempts = 0; // NEW: Track reconnection attempts
         this.maxReconnectionAttempts = 10; // NEW: Maximum reconnection attempts
         this.reconnectionDelay = 1000; // NEW: Base reconnection delay
-        this.reconnectionTimer = null; // NEW: Timer for reconnection attempts
         this.networkMonitor = null; // NEW: Network status monitor
         this.visibilityMonitor = null; // NEW: Page visibility monitor
         this.isReconnecting = false; // NEW: Prevent multiple reconnection attempts
-        this.pageHidden = false; // NEW: Track if page is hidden
-        this.isSimulatedStop = false; // NEW: Track if stop is for reconnection purposes
         
         // Event callbacks
         this.onStart = null;
@@ -60,9 +57,6 @@ class SpeechToText {
         this.onError = null;
         this.onSave = null;
         this.onConnectionChange = null; // NEW: Connection status callback
-        this.onConnect = null; // NEW: Connection established callback
-        this.onDisconnect = null; // NEW: Connection lost callback  
-        this.onReconnectionSuccess = null; // NEW: Reconnection success callback
         
         this.init();
     }
@@ -239,9 +233,6 @@ class SpeechToText {
         // Enhanced Speech Recognition Configuration
         this.setupMedicalGrammar();
         
-        // Setup network and visibility monitoring for robust reconnection
-        this.setupNetworkMonitoring();
-        
         this.setupEventHandlers();
     }
 
@@ -269,10 +260,13 @@ class SpeechToText {
                 console.log('🚀 Emitting speech-start event:', startData);
                 this.socket.emit('speech-start', startData);
             } else {
-                // Socket.IO not available - this is normal for standalone usage
-                if (this.options.enableRealtime) {
-                    console.log('ℹ️ Real-time events disabled - socket not connected');
-                }
+                console.warn('❌ Cannot emit speech-start:', {
+                    enableRealtime: this.options.enableRealtime,
+                    hasSocket: !!this.socket,
+                    socketConnected: this.socket?.connected,
+                    sessionId: this.sessionId,
+                    studentName: this.studentName
+                });
             }
             
             if (this.options.autoSave && this.options.saveInterval > 0) {
@@ -285,13 +279,6 @@ class SpeechToText {
         // Recognition ended
         this.recognition.onend = () => {
             console.log('🔄 Speech recognition ended - analyzing reason and determining action...');
-            
-            // If this was a simulated stop for reconnection, ignore it
-            if (this.isSimulatedStop) {
-                console.log('⏳ Recognition ended for reconnection - ignoring end event');
-                this.isSimulatedStop = false; // Reset the flag
-                return;
-            }
             
             // If user manually stopped, don't reconnect
             if (this.userStopped) {
@@ -431,10 +418,11 @@ class SpeechToText {
                 });
                 this.socket.emit('speech-realtime', realtimeData);
             } else {
-                // Socket.IO not available - this is normal for standalone usage
-                if (this.options.enableRealtime) {
-                    console.log('ℹ️ Real-time streaming disabled - socket not connected');
-                }
+                console.warn('❌ Cannot emit speech-realtime:', {
+                    enableRealtime: this.options.enableRealtime,
+                    hasSocket: !!this.socket,
+                    socketConnected: this.socket?.connected
+                });
             }
 
             // Trigger callback with results
@@ -635,15 +623,13 @@ class SpeechToText {
         this.studentName = sessionData.studentName || null;
         this.courseId = sessionData.courseId || null;
         
-        // Reset state for new session
+        // Reset transcripts and counters
         this.finalTranscript = '';
         this.interimTranscript = '';
         this.lastSavedTranscript = '';
         this.resetRestartCounter();
         this.lastSpeechTime = new Date();
         this.userStopped = false; // NEW: Reset user stop flag
-        this.reconnectionAttempts = 0; // Reset reconnection attempts
-        this.connectionState = 'connecting'; // Set initial state
 
         this.isRecognizing = true;
         
@@ -706,15 +692,6 @@ class SpeechToText {
         this.clearSilenceTimer();
         this.stopHealthMonitoring(); // NEW: Stop health monitoring
         this.resetRestartCounter();
-        
-        // Clear any pending reconnection attempts
-        if (this.reconnectionTimer) {
-            clearTimeout(this.reconnectionTimer);
-            this.reconnectionTimer = null;
-        }
-        
-        this.connectionState = 'disconnected';
-        this.notifyConnectionChange('disconnected', 'Stopped by user');
 
         try {
             this.recognition.stop();
@@ -736,12 +713,6 @@ class SpeechToText {
 
     // Auto-save functionality
     startAutoSave() {
-        // Don't start auto-save if it's disabled
-        if (!this.options.autoSave) {
-            console.log('ℹ️ Auto-save is disabled');
-            return;
-        }
-        
         this.stopAutoSave(); // Clear any existing timer
         
         this.saveTimer = setInterval(() => {
@@ -1013,272 +984,6 @@ class SpeechToText {
     resetRestartCounter() {
         this.restartCount = 0;
         console.log('🔄 Restart counter reset');
-    }
-    
-    // Intelligent reconnection with exponential backoff and network awareness
-    attemptIntelligentReconnection() {
-        if (this.userStopped || !this.isRecognizing) {
-            console.log('🛑 Not attempting reconnection - user stopped or not recognizing');
-            return;
-        }
-        
-        // Check if we've exceeded max reconnection attempts
-        if (this.reconnectionAttempts >= this.maxReconnectionAttempts) {
-            console.error('❌ Max reconnection attempts reached');
-            this.connectionState = 'error';
-            this.isRecognizing = false;
-            this.notifyConnectionChange('error', 'Maximum reconnection attempts exceeded');
-            
-            if (this.onError) {
-                this.onError({
-                    error: 'max-reconnection-attempts',
-                    message: 'Failed to reconnect after multiple attempts. Please refresh the page and try again.',
-                    critical: true,
-                    attempts: this.reconnectionAttempts,
-                    timestamp: new Date().toISOString()
-                });
-            }
-            return;
-        }
-        
-        this.reconnectionAttempts++;
-        
-        // Calculate exponential backoff with jitter
-        const baseDelay = Math.min(1000 * Math.pow(2, this.reconnectionAttempts - 1), 30000);
-        const jitter = Math.random() * 1000; // Add randomness to prevent thundering herd
-        const delay = baseDelay + jitter;
-        
-        console.log(`🔄 Intelligent reconnection attempt ${this.reconnectionAttempts}/${this.maxReconnectionAttempts} in ${Math.round(delay)}ms`);
-        
-        // Clear any existing reconnection timer
-        if (this.reconnectionTimer) {
-            clearTimeout(this.reconnectionTimer);
-        }
-        
-        this.reconnectionTimer = setTimeout(async () => {
-            if (this.userStopped || !this.isRecognizing) {
-                console.log('🛑 Reconnection cancelled - user stopped or not recognizing');
-                return;
-            }
-            
-            console.log(`🚀 Starting reconnection attempt ${this.reconnectionAttempts}`);
-            
-            // Check permissions before attempting reconnection
-            const hasPermissions = await this.checkAndRequestPermissions();
-            if (!hasPermissions) {
-                console.error('❌ Cannot reconnect - microphone permissions required');
-                this.connectionState = 'error';
-                this.isRecognizing = false;
-                this.notifyConnectionChange('error', 'Microphone permissions required');
-                return;
-            }
-            
-            try {
-                // Reset recognition state
-                this.connectionState = 'connecting';
-                this.notifyConnectionChange('connecting', `Reconnection attempt ${this.reconnectionAttempts}`);
-                
-                // Stop current recognition if it's still running
-                try {
-                    if (this.recognition) {
-                        this.isSimulatedStop = true; // Flag this as a reconnection stop
-                        this.recognition.stop();
-                    }
-                } catch (stopError) {
-                    console.log('Recognition was already stopped or stopping');
-                }
-                
-                // Wait a moment for the stop to complete, then restart
-                setTimeout(() => {
-                    try {
-                        // Reset the simulated stop flag
-                        this.isSimulatedStop = false;
-                        
-                        // Setup event handlers and start fresh
-                        this.setupEventHandlers();
-                        this.recognition.start();
-                    } catch (startError) {
-                        console.error('Failed to start recognition after stop:', startError);
-                        // Try again with next attempt
-                        if (this.reconnectionAttempts < this.maxReconnectionAttempts) {
-                            setTimeout(() => this.attemptIntelligentReconnection(), 1000);
-                        }
-                    }
-                }, 100);
-                
-                // Monitor the reconnection success
-                this.monitorReconnectionSuccess();
-                
-            } catch (error) {
-                console.error('🚨 Error during reconnection attempt:', error);
-                
-                // If we fail to start, try again
-                if (this.reconnectionAttempts < this.maxReconnectionAttempts) {
-                    setTimeout(() => this.attemptIntelligentReconnection(), 1000);
-                } else {
-                    this.connectionState = 'error';
-                    this.isRecognizing = false;
-                    this.notifyConnectionChange('error', 'Reconnection failed completely');
-                }
-            }
-        }, delay);
-    }
-    
-    // Monitor if reconnection was successful
-    monitorReconnectionSuccess() {
-        // Set a timeout to check if reconnection was successful
-        setTimeout(() => {
-            if (this.connectionState === 'connected' && this.isRecognizing) {
-                console.log('✅ Reconnection successful, resetting attempt counter');
-                this.reconnectionAttempts = 0;
-                this.notifyConnectionChange('connected', 'Successfully reconnected');
-                
-                // Optional: Notify success to UI
-                if (this.onReconnectionSuccess) {
-                    this.onReconnectionSuccess({
-                        message: 'Speech recognition reconnected successfully',
-                        timestamp: new Date().toISOString()
-                    });
-                }
-            } else if (this.isRecognizing) {
-                // Still trying to connect, give it more time or retry
-                console.log('⏳ Reconnection still in progress...');
-            }
-        }, 3000);
-    }
-    
-    // Enhanced connection change notification
-    notifyConnectionChange(state, message) {
-        this.connectionState = state;
-        const timestamp = new Date().toISOString();
-        
-        console.log(`🔄 Connection state changed: ${state} - ${message}`);
-        
-        // Call the callback if available
-        if (this.onConnectionChange) {
-            this.onConnectionChange({
-                state: state,
-                message: message,
-                timestamp: timestamp,
-                reconnectionAttempts: this.reconnectionAttempts,
-                maxAttempts: this.maxReconnectionAttempts
-            });
-        }
-        
-        // For backwards compatibility, also call individual callbacks
-        switch (state) {
-            case 'connected':
-                this.triggerCallback('onConnect', { message, timestamp });
-                break;
-            case 'disconnected':
-                this.triggerCallback('onDisconnect', { message, timestamp });
-                break;
-            case 'error':
-                this.triggerCallback('onError', {
-                    error: 'connection-error',
-                    message: message,
-                    timestamp: timestamp
-                });
-                break;
-        }
-    }
-    
-    // Permission recovery for reconnection attempts
-    async checkAndRequestPermissions() {
-        try {
-            // Check if we have microphone access
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            stream.getTracks().forEach(track => track.stop()); // Clean up
-            return true;
-        } catch (error) {
-            console.warn('🎤 Microphone permission check failed:', error);
-            
-            // If permission was denied, we can't auto-recover
-            if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
-                this.triggerCallback('onError', {
-                    error: 'microphone-permission-denied',
-                    message: 'Microphone access is required for speech recognition. Please refresh the page and allow microphone access.',
-                    critical: true,
-                    timestamp: new Date().toISOString()
-                });
-                return false;
-            }
-            
-            // For other errors (like no microphone), we can still try
-            return true;
-        }
-    }
-    
-    // Network change detection and handling
-    setupNetworkMonitoring() {
-        // Monitor online/offline status
-        window.addEventListener('online', () => {
-            console.log('🌐 Network connection restored');
-            if (this.connectionState === 'disconnected' && this.isRecognizing && !this.userStopped) {
-                console.log('🔄 Network restored, attempting reconnection...');
-                this.attemptIntelligentReconnection();
-            }
-        });
-        
-        window.addEventListener('offline', () => {
-            console.log('📵 Network connection lost');
-            this.connectionState = 'disconnected';
-            this.notifyConnectionChange('disconnected', 'Network connection lost');
-        });
-        
-        // Monitor page visibility for browser suspension
-        document.addEventListener('visibilitychange', () => {
-            if (document.hidden) {
-                console.log('👁️ Page hidden - pausing aggressive reconnection');
-                this.pageHidden = true;
-            } else {
-                console.log('👁️ Page visible - resuming normal operation');
-                this.pageHidden = false;
-                
-                // If we were trying to reconnect, resume
-                if (this.connectionState === 'reconnecting' && this.isRecognizing && !this.userStopped) {
-                    console.log('🔄 Page visible again, checking connection...');
-                    setTimeout(() => {
-                        if (this.connectionState !== 'connected') {
-                            this.attemptIntelligentReconnection();
-                        }
-                    }, 1000);
-                }
-            }
-        });
-    }
-    
-    // Helper method to trigger callbacks safely
-    triggerCallback(callbackName, data = {}) {
-        const callback = this[callbackName];
-        if (typeof callback === 'function') {
-            try {
-                callback(data);
-            } catch (error) {
-                console.error(`Error in ${callbackName} callback:`, error);
-            }
-        }
-    }
-
-    // Update the active Socket.IO connection reference
-    setSocket(newSocket) {
-        if (newSocket && typeof newSocket.on !== 'function') {
-            console.warn('setSocket called with an invalid socket instance');
-            return;
-        }
-        this.socket = newSocket || null;
-    }
-
-    // Update the base API URL used for REST fallbacks
-    setApiBase(apiBaseUrl) {
-        if (apiBaseUrl && typeof apiBaseUrl === 'string') {
-            this.options.apiBaseUrl = apiBaseUrl;
-        }
-    }
-
-    // Update cached student metadata used for transcripts and events
-    setStudentName(name) {
-        this.studentName = name ? String(name).trim() || null : null;
     }
 
     // Static method to check browser support

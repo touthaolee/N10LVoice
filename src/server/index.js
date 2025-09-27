@@ -68,11 +68,6 @@ let pool;
 const connectedAdmins = new Set();
 const studentProgress = new Map();
 
-// Initialize test session control (default to practice mode)
-global.liveTestSessionActive = false;
-global.liveTestSessionStartTime = null;
-global.liveTestSessionAdmin = null;
-
 // Build immutable textual report snapshot (mirrors client generateReport)
 function buildEvaluationReport({ meta, score, passedItems, failedItems, notes }) {
   try {
@@ -813,110 +808,6 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Health check ping/pong for admin dashboard
-  socket.on('admin-ping', (payload = {}) => {
-    if (socket.user.role !== 'admin') return;
-
-    const serverTime = Date.now();
-    const sentAt = typeof payload.timestamp === 'number' ? payload.timestamp : null;
-    const latency = sentAt !== null ? serverTime - sentAt : null;
-
-    socket.emit('admin-pong', {
-      serverTime,
-      latency,
-      type: payload.type || 'health-check'
-    });
-  });
-
-  // Test session control for live monitoring
-  socket.on('admin-start-test-session', (data) => {
-    if (socket.user.role !== 'admin') return;
-    
-    logger.info(`Admin ${socket.user.username} started live test session`, {
-      adminId: socket.user.id,
-      startTime: data.startTime,
-      timestamp: data.timestamp
-    });
-    
-    // Set global test session flag
-    global.liveTestSessionActive = true;
-    global.liveTestSessionStartTime = data.startTime;
-    global.liveTestSessionAdmin = {
-      id: socket.user.id,
-      username: socket.user.username
-    };
-    
-    // Notify all connected admins
-    io.emit('test-session-started', {
-      adminId: socket.user.id,
-      adminName: socket.user.username,
-      startTime: data.startTime,
-      timestamp: data.timestamp
-    });
-    
-    // Notify all connected students (optional - for UI updates)
-    connectedStudents.forEach((studentData, studentSocketId) => {
-      const studentSocket = io.sockets.sockets.get(studentSocketId);
-      if (studentSocket) {
-        studentSocket.emit('test-session-active', {
-          active: true,
-          message: 'Live test session is now active - your work will be graded and recorded'
-        });
-      }
-    });
-    
-    console.log(`🎯 Live test session started by admin ${socket.user.username}`);
-  });
-
-  socket.on('admin-stop-test-session', (data) => {
-    if (socket.user.role !== 'admin') return;
-    
-    logger.info(`Admin ${socket.user.username} stopped live test session`, {
-      adminId: socket.user.id,
-      endTime: data.endTime,
-      duration: data.duration,
-      timestamp: data.timestamp
-    });
-    
-    // Clear global test session flag
-    global.liveTestSessionActive = false;
-    global.liveTestSessionStartTime = null;
-    global.liveTestSessionAdmin = null;
-    
-    // Notify all connected admins
-    io.emit('test-session-stopped', {
-      adminId: socket.user.id,
-      adminName: socket.user.username,
-      endTime: data.endTime,
-      duration: data.duration,
-      timestamp: data.timestamp
-    });
-    
-    // Notify all connected students
-    connectedStudents.forEach((studentData, studentSocketId) => {
-      const studentSocket = io.sockets.sockets.get(studentSocketId);
-      if (studentSocket) {
-        studentSocket.emit('test-session-active', {
-          active: false,
-          message: 'Test session ended - you are now in practice mode'
-        });
-      }
-    });
-    
-    console.log(`🎯 Live test session stopped by admin ${socket.user.username}`);
-  });
-
-  // Send test session status to newly connected admins
-  socket.on('admin-get-test-session-status', () => {
-    if (socket.user.role !== 'admin') return;
-    
-    socket.emit('test-session-status', {
-      active: global.liveTestSessionActive || false,
-      startTime: global.liveTestSessionStartTime,
-      admin: global.liveTestSessionAdmin
-    });
-  });
-
   socket.on('disconnect', () => {
     console.log(`User ${socket.user.username} disconnected`);
     
@@ -988,39 +879,35 @@ app.post('/api/auth/login', async (req, res) => {
     
     // Student login (simple session-based)
     if (password === 'fresnostate123') {
-      // Auto-enroll student in active semester/cohort - only during live test sessions
-      if (!global.liveTestSessionActive) {
-        console.log(`Practice mode: Student ${username} logged in but NOT auto-enrolled - practice session`);
-      } else {
-        try {
-          // Get active semester and cohort
-          const [activeSemesters] = await pool.query('SELECT * FROM n10l_semesters WHERE is_active = TRUE LIMIT 1');
-          const [activeCohorts] = await pool.query('SELECT * FROM n10l_student_cohorts WHERE is_active = TRUE LIMIT 1');
+      // Auto-enroll student in active semester/cohort
+      try {
+        // Get active semester and cohort
+        const [activeSemesters] = await pool.query('SELECT * FROM n10l_semesters WHERE is_active = TRUE LIMIT 1');
+        const [activeCohorts] = await pool.query('SELECT * FROM n10l_student_cohorts WHERE is_active = TRUE LIMIT 1');
+        
+        if (activeSemesters.length > 0 && activeCohorts.length > 0) {
+          const semester = activeSemesters[0];
+          const cohort = activeCohorts[0];
           
-          if (activeSemesters.length > 0 && activeCohorts.length > 0) {
-            const semester = activeSemesters[0];
-            const cohort = activeCohorts[0];
+          // Check if student is already enrolled
+          const [existing] = await pool.query(
+            'SELECT id FROM n10l_student_enrollments WHERE student_name = ? AND cohort_id = ? AND semester_id = ?',
+            [username, cohort.id, semester.id]
+          );
+          
+          // Enroll student if not already enrolled
+          if (existing.length === 0) {
+            await pool.query(`
+              INSERT INTO n10l_student_enrollments (student_name, cohort_id, semester_id, status)
+              VALUES (?, ?, ?, 'active')
+            `, [username, cohort.id, semester.id]);
             
-            // Check if student is already enrolled
-            const [existing] = await pool.query(
-              'SELECT id FROM n10l_student_enrollments WHERE student_name = ? AND cohort_id = ? AND semester_id = ?',
-              [username, cohort.id, semester.id]
-            );
-            
-            // Enroll student if not already enrolled
-            if (existing.length === 0) {
-              await pool.query(`
-                INSERT INTO n10l_student_enrollments (student_name, cohort_id, semester_id, status)
-                VALUES (?, ?, ?, 'active')
-              `, [username, cohort.id, semester.id]);
-              
-              console.log(`✅ Auto-enrolled ${username} in ${semester.semester_name} - ${cohort.cohort_name}`);
-            }
+            console.log(`✅ Auto-enrolled ${username} in ${semester.semester_name} - ${cohort.cohort_name}`);
           }
-        } catch (enrollError) {
-          console.error('Auto-enrollment error:', enrollError);
-          // Continue with login even if enrollment fails
         }
+      } catch (enrollError) {
+        console.error('Auto-enrollment error:', enrollError);
+        // Continue with login even if enrollment fails
       }
       
       const sessionId = crypto.randomUUID();
@@ -1187,29 +1074,6 @@ app.post('/api/evaluations', authenticateToken, async (req, res) => {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    // Check if live test session is active - only save to database during test sessions
-    if (!global.liveTestSessionActive) {
-      return res.status(200).json({ 
-        success: true,
-        message: 'Practice mode - evaluation not saved to database',
-        practiceMode: true,
-        studentName,
-        evaluatorName,
-        timestamp: new Date().toISOString()
-      });
-    }
-
-    logger.info(`📝 Saving evaluation for ${studentName} by ${evaluatorName} (Test Session Active)`, {
-      studentName,
-      evaluatorName,
-      courseWeekId: req.body.courseWeekId || 1,
-      passed,
-      failed,
-      total,
-      percent,
-      testSessionActive: global.liveTestSessionActive
-    });
-
     // Determine course week (default to Personal Care if not specified)
     const courseWeekId = req.body.courseWeekId || 1;
     
@@ -1330,18 +1194,6 @@ app.post('/api/evaluations/start', authenticateToken, async (req, res) => {
       return res.status(400).json({ error: 'Week number is required' });
     }
 
-    // Check if live test session is active - if not, this is practice mode
-    if (!global.liveTestSessionActive) {
-      console.log(`Practice mode: Student ${studentName} starting evaluation for week ${weekNumber} - NOT saving to database`);
-      return res.status(200).json({ 
-        sessionId: 'practice-' + Date.now(), 
-        weekNumber, 
-        courseId: 'practice',
-        message: 'Practice session started - data will not be saved',
-        practiceMode: true
-      });
-    }
-
     // Get course details
     const [courses] = await pool.query('SELECT id FROM n10l_courses WHERE week_number = ? AND active = TRUE', [weekNumber]);
     if (courses.length === 0) {
@@ -1381,18 +1233,6 @@ app.post('/api/evaluations/:sessionId/progress', authenticateToken, async (req, 
     const { sessionId } = req.params;
     const { items, score, notes } = req.body;
     const studentName = req.user.username;
-
-    // Check if this is a practice session or if live test session is not active
-    if (!global.liveTestSessionActive || sessionId.startsWith('practice-')) {
-      return res.status(200).json({ 
-        success: true,
-        message: 'Practice mode - progress not saved to database',
-        practiceMode: true,
-        sessionId,
-        studentName,
-        timestamp: new Date().toISOString()
-      });
-    }
 
     // Verify session belongs to student
     const [sessions] = await pool.query(`
@@ -1454,26 +1294,6 @@ app.post('/api/evaluations/:sessionId/complete', authenticateToken, async (req, 
     const { sessionId } = req.params;
     const { finalScore, finalItems, notes } = req.body;
     const studentName = req.user.username;
-
-    // Check if live test session is active - only save to database during test sessions
-    if (!global.liveTestSessionActive || sessionId.startsWith('practice-')) {
-      return res.status(200).json({ 
-        success: true,
-        message: 'Practice mode - evaluation completion not saved to database',
-        practiceMode: true,
-        sessionId,
-        studentName,
-        timestamp: new Date().toISOString()
-      });
-    }
-
-    logger.info(`✅ Completing evaluation session ${sessionId} for ${studentName} (Test Session Active)`, {
-      sessionId,
-      studentName,
-      finalScore,
-      itemCount: finalItems ? finalItems.length : 0,
-      testSessionActive: global.liveTestSessionActive
-    });
 
     // Verify session belongs to student
     const [sessions] = await pool.query(`
@@ -2776,25 +2596,6 @@ app.post('/api/speech/save', async (req, res) => {
         error: 'Missing required fields: studentName and transcript are required' 
       });
     }
-
-    // Check if live test session is active - only save to database during test sessions
-    if (!global.liveTestSessionActive) {
-      return res.status(200).json({ 
-        success: true,
-        message: 'Practice mode - transcript not saved to database',
-        practiceMode: true,
-        timestamp: new Date().toISOString()
-      });
-    }
-
-    logger.info(`💾 Saving speech transcript for ${studentName} (Test Session Active)`, {
-      sessionId,
-      studentName,
-      courseId,
-      transcriptLength: transcript ? transcript.length : 0,
-      isFinal,
-      testSessionActive: global.liveTestSessionActive
-    });
 
     // Check if session already exists and append transcript, otherwise insert new record
     let result;

@@ -1,0 +1,29 @@
+<div class="scenario-summary">
+        <h3>Vital Signs Assessment Scenario</h3>
+        <div class="patient-info">
+          <strong>Assessment Focus:</strong> Comprehensive vital signs monitoring and assessment<br />
+          <strong>Skills Evaluated:</strong> Temperature, Blood Pressure, Pulse (Radial/Apical), Respirations, Pain Assessment, Blood Glucose<br />
+          <strong>Clinical Setting:</strong> Medical-Surgical Unit<br />
+          <strong>Documentation:</strong> Complete vital signs record with accurate measurements<br />
+          <strong>Priority:</strong> Oxygenation assessment and physiological stability monitoring<br />
+          <strong>Equipment:</strong> Thermometer, BP cuff, stethoscope, pulse oximeter, glucometer
+        </div>
+      </div>
+
+      <!-- Dynamic sections will be populated here by JavaScript -->
+      <div id="dynamicSections"></div>
+      
+      <div class="section" id="sec-notes">
+        <button type="button" class="section-header" aria-expanded="true" onclick="toggleSection(this)">
+          <span class="section-title">Evaluation Notes</span>
+          <span class="toggle-icon">▾</span>
+        </button>
+        <div class="section-content">
+          <div class="notes">
+            <div class="field"><label for="sbar_notes">SBAR Communication</label><textarea id="sbar_notes" placeholder="Document SBAR communication effectiveness..."></textarea></div>
+            <div class="field"><label for="collaboration_notes">Collaboration</label><textarea id="collaboration_notes" placeholder="Note teamwork and collaboration skills..."></textarea></div>
+            <div class="field"><label for="critical_thinking_notes">Critical Thinking</label><textarea id="critical_thinking_notes" placeholder="Observe critical thinking and clinical reasoning..."></textarea></div>
+            <div class="field"><label for="clinical_judgment_notes">Clinical Judgment</label><textarea id="clinical_judgment_notes" placeholder="Evaluate clinical judgment and decision making..."></textarea></div>
+            <div class="field"><label for="additional_notes">Additional Notes</label><textarea id="additional_notes" placeholder="Any other observations or feedback..."></textarea></div>
+          </div>
+        </div>
